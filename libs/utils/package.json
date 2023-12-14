@@ -4,7 +4,9 @@
     "peerDependencies": {
         "clsx": "^2.0.0",
         "tailwind-merge": "^2.1.0",
-        "@nx/angular": "17.2.3"
+        "@nx/angular": "17.2.3",
+        "@angular/core": "~17.0.0",
+        "rxjs": "~7.8.0"
     },
     "dependencies": {},
     "sideEffects": false

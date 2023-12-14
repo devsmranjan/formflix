@@ -1,0 +1,19 @@
+<label class="form-control w-full max-w-xs">
+    <div class="label">
+        <span class="label-text"
+            >{{ field.label }}
+
+            @if (field.required) {
+                <span class="text-red-500">*</span>
+            }
+        </span>
+    </div>
+    <input type="text" class="input input-bordered w-full max-w-xs" />
+    <div class="label">
+        @if (error()) {
+            <span class="label-text-alt text-red-400">{{ error() }}</span>
+        } @else if (field.hint) {
+            <span class="label-text-alt text-gray-400">{{ field.hint }}</span>
+        }
+    </div>
+</label>

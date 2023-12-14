@@ -1,1 +1,5 @@
-<p>field works!</p>
+@if (field.readonly) {
+    <p>Show value for field: {{ field.label }}</p>
+} @else {
+    <formflix-textfield [field]="field" />
+}

@@ -4,7 +4,7 @@ import { RouterModule } from '@angular/router';
 import { FieldComponent } from '@formflix/field';
 import { SectionComponent } from '@formflix/section';
 import { SubsectionComponent } from '@formflix/subsection';
-import { cn } from '@formflix/utils';
+import { TField } from '@formflix/utils';
 
 @Component({
     standalone: true,
@@ -14,8 +14,15 @@ import { cn } from '@formflix/utils';
     styleUrl: './app.component.scss',
 })
 export class AppComponent {
-    title = 'formflix';
-    _cn = cn;
-
-    flag = true;
+    field: TField = {
+        id: 1,
+        label: 'Invoice Number',
+        name: 'INVOICE_NUMBER',
+        tag: 'input',
+        type: 'text',
+        path: 'invoiceNumber',
+        required: true,
+        hint: 'Name should be atleast of 5 characters',
+        readonly: false,
+    };
 }

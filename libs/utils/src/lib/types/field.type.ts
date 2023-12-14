@@ -8,6 +8,9 @@ export type TField = {
     tag: string;
     type: string;
     path: string;
+    hint?: string;
+    required?: boolean;
+    readonly?: boolean;
     dependsOn?: TId[];
     // defaultValue?: any;
     value?: TValueCalculation;
