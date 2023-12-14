@@ -8,7 +8,7 @@
             }
         </span>
     </div>
-    <input type="text" class="input input-bordered w-full max-w-xs" />
+    <input [type]="field.type" class="input input-bordered w-full max-w-xs" />
     <div class="label">
         @if (error()) {
             <span class="label-text-alt text-red-400">{{ error() }}</span>

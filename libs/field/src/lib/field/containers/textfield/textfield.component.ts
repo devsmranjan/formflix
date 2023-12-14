@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, Input, signal } from '@angular/core';
 
-import { TField } from '@formflix/utils';
+import { TInputField } from '@formflix/utils';
 
 @Component({
     selector: 'formflix-textfield',
@@ -12,7 +12,7 @@ import { TField } from '@formflix/utils';
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TextfieldComponent {
-    @Input({ required: true }) field!: TField;
+    @Input({ required: true }) field!: TInputField;
 
     error = signal<string | null>(null);
 }

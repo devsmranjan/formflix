@@ -1,5 +1,13 @@
 @if (field.readonly) {
     <p>Show value for field: {{ field.label }}</p>
 } @else {
-    <formflix-textfield [field]="field" />
+    @switch (field.tag) {
+        @case ('input') {
+            <formflix-textfield [field]="field" />
+        }
+
+        @default {
+            <p>Not able map with any field</p>
+        }
+    }
 }

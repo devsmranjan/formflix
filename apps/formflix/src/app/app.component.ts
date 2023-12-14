@@ -4,7 +4,7 @@ import { RouterModule } from '@angular/router';
 import { FieldComponent } from '@formflix/field';
 import { SectionComponent } from '@formflix/section';
 import { SubsectionComponent } from '@formflix/subsection';
-import { TField } from '@formflix/utils';
+import { EFieldTag, TField } from '@formflix/utils';
 
 @Component({
     standalone: true,
@@ -18,8 +18,8 @@ export class AppComponent {
         id: 1,
         label: 'Invoice Number',
         name: 'INVOICE_NUMBER',
-        tag: 'input',
-        type: 'text',
+        tag: EFieldTag.Input,
+        type: 'number',
         path: 'invoiceNumber',
         required: true,
         hint: 'Name should be atleast of 5 characters',

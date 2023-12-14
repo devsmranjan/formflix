@@ -1,7 +1,20 @@
 import { TId } from './id.type';
 import { TValueCalculation } from './value-calculation.type';
 
-export type TField = {
+export enum EFieldTag {
+    Input = 'input',
+    Textarea = 'textarea',
+    Select = 'select',
+    Autocomplete = 'autocomplete',
+    Date = 'date',
+    Time = 'time',
+    DateTime = 'datetime',
+    Range = 'range',
+    Radio = 'radio',
+    Checkbox = 'checkbox',
+}
+
+export type TFieldBase = {
     id: TId;
     label: string;
     name: string;
@@ -17,3 +30,14 @@ export type TField = {
     calculateValueInitially?: boolean;
     show?: boolean;
 };
+
+export type TInputField = {
+    tag: EFieldTag.Input;
+    type: 'text' | 'number';
+} & TFieldBase;
+
+export type TTextareaField = {
+    tag: EFieldTag.Textarea;
+} & Omit<TFieldBase, 'type'>;
+
+export type TField = TInputField | TTextareaField;
