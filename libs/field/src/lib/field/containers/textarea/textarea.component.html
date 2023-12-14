@@ -1,0 +1,19 @@
+<label class="form-control">
+    <div class="label">
+        <span class="label-text"
+            >{{ field.label }}
+
+            @if (field.required) {
+                <span class="text-red-500">*</span>
+            }
+        </span>
+    </div>
+    <textarea class="textarea textarea-bordered h-24 w-full max-w-xs"></textarea>
+    <div class="label">
+        @if (error()) {
+            <span class="label-text-alt text-red-400">{{ error() }}</span>
+        } @else if (field.hint) {
+            <span class="label-text-alt text-gray-400">{{ field.hint }}</span>
+        }
+    </div>
+</label>
