@@ -1,0 +1,11 @@
+{
+    "name": "@formflix/utils",
+    "version": "0.0.1",
+    "peerDependencies": {
+        "clsx": "^2.0.0",
+        "tailwind-merge": "^2.1.0",
+        "@nx/angular": "17.2.3"
+    },
+    "dependencies": {},
+    "sideEffects": false
+}

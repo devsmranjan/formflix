@@ -17,7 +17,8 @@
         "paths": {
             "@formflix/field": ["libs/field/src/index.ts"],
             "@formflix/section": ["libs/section/src/index.ts"],
-            "@formflix/subsection": ["libs/subsection/src/index.ts"]
+            "@formflix/subsection": ["libs/subsection/src/index.ts"],
+            "@formflix/utils": ["libs/utils/src/index.ts"]
         }
     },
     "exclude": ["node_modules", "tmp"]

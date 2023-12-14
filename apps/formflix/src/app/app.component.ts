@@ -4,6 +4,7 @@ import { RouterModule } from '@angular/router';
 import { FieldComponent } from '@formflix/field';
 import { SectionComponent } from '@formflix/section';
 import { SubsectionComponent } from '@formflix/subsection';
+import { cn } from '@formflix/utils';
 
 @Component({
     standalone: true,
@@ -14,4 +15,7 @@ import { SubsectionComponent } from '@formflix/subsection';
 })
 export class AppComponent {
     title = 'formflix';
+    _cn = cn;
+
+    flag = true;
 }
