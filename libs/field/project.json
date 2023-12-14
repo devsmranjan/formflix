@@ -1,0 +1,38 @@
+{
+    "name": "field",
+    "$schema": "../../node_modules/nx/schemas/project-schema.json",
+    "sourceRoot": "libs/field/src",
+    "prefix": "formflix",
+    "tags": [],
+    "projectType": "library",
+    "targets": {
+        "build": {
+            "executor": "@nx/angular:ng-packagr-lite",
+            "outputs": ["{workspaceRoot}/dist/{projectRoot}"],
+            "options": {
+                "project": "libs/field/ng-package.json",
+                "tailwindConfig": "libs/field/tailwind.config.js"
+            },
+            "configurations": {
+                "production": {
+                    "tsConfig": "libs/field/tsconfig.lib.prod.json"
+                },
+                "development": {
+                    "tsConfig": "libs/field/tsconfig.lib.json"
+                }
+            },
+            "defaultConfiguration": "production"
+        },
+        "test": {
+            "executor": "@nx/jest:jest",
+            "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
+            "options": {
+                "jestConfig": "libs/field/jest.config.ts"
+            }
+        },
+        "lint": {
+            "executor": "@nx/eslint:lint",
+            "outputs": ["{options.outputFile}"]
+        }
+    }
+}

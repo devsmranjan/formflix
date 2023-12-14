@@ -14,7 +14,11 @@
         "skipLibCheck": true,
         "skipDefaultLibCheck": true,
         "baseUrl": ".",
-        "paths": {}
+        "paths": {
+            "@formflix/field": ["libs/field/src/index.ts"],
+            "@formflix/section": ["libs/section/src/index.ts"],
+            "@formflix/subsection": ["libs/subsection/src/index.ts"]
+        }
     },
     "exclude": ["node_modules", "tmp"]
 }
