@@ -15,7 +15,7 @@ type TFullPayload = {
     parentProperty: string | number;
 };
 
-export const setToJson = (path: string, json: Record<string, unknown> | unknown[], value: unknown) => {
+export const setToJson = (path: string, json: Record<string, unknown> | unknown[] | null, value: unknown) => {
     if (!json) return;
 
     return JSONPath({

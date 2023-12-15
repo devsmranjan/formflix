@@ -28,7 +28,7 @@ export class GlobalService {
         this.#fields = fields;
 
         this.#fieldMap = this.createFieldMap(fields);
-        this.#dependentObserverMap = this.createDependentObserverMap(this.#fieldMap); // TODO: You should call this in a subsection component, so that when subsction is visible then only it will create (not create exactly, it should add or remove obserbales not replace) the observer
+        this.#dependentObserverMap = this.createDependentObserverMap(this.#fieldMap); // TODO: You should call this in a subsection component, so that when subsction is visible then only it will create (not create exactly, it should add or remove observables not replace) the observer
         this.#dependentAndFieldMap = this.createDependentAndFieldMap(this.#fieldMap);
 
         console.log('fields', this.#fields);
@@ -128,10 +128,10 @@ export class GlobalService {
     }
 
     getDependentFieldIds(id: TId) {
-        return this.#dependentAndFieldMap.get(`${id}`);
+        return this.#dependentAndFieldMap.get(id);
     }
 
-    getDependentFieldsHavingInitialCalculationFlag(id: TId) {
+    getDependentFieldsWithInitialCalculation(id: TId) {
         const dependentFieldIds = this.getDependentFieldIds(id);
 
         if (!dependentFieldIds) {

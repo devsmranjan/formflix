@@ -36,8 +36,18 @@ export type TInputField = {
     type: 'text' | 'number';
 } & TFieldBase;
 
+export type TInputTextField = {
+    type: 'text';
+    defaultValue?: string;
+} & TInputField;
+
+export type TInputNumberField = {
+    type: 'number';
+    defaultValue?: number;
+} & TInputField;
+
 export type TTextareaField = {
     tag: EFieldTag.Textarea;
 } & Omit<TFieldBase, 'type'>;
 
-export type TField = TInputField | TTextareaField;
+export type TField = TInputTextField | TInputNumberField | TTextareaField;

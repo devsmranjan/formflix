@@ -24,6 +24,8 @@ export class TextfieldComponent implements OnInit, OnDestroy {
     formControl = new FormControl();
     error = signal<string | null>(null);
 
+    current$!: Subject<symbol> | undefined; // current observable
+
     destroy$ = new Subject<void>();
 
     ngOnInit(): void {
@@ -32,8 +34,16 @@ export class TextfieldComponent implements OnInit, OnDestroy {
         // set initial value
         this.setInitalValue();
 
+        // trigger dependents having initial calculation flag
+        this.triggerInitialDependentFields();
+
         // handle form value change
         this.handleFormValueChange();
+
+        // assign current observer
+        this.current$ = this.#globalService.getDependentObserver(this.field.id);
+
+        this.handleChangesOnDependentChanges();
     }
 
     setInitalValue() {
@@ -70,11 +80,41 @@ export class TextfieldComponent implements OnInit, OnDestroy {
         this.formControl.setValue(value);
     }
 
+    triggerInitialDependentFields() {
+        const dependentFieldsWithInitialCalculation =
+            this.#globalService.getDependentFieldsWithInitialCalculation(this.field.id) || [];
+
+        console.log('dependent fields with initial calculation', dependentFieldsWithInitialCalculation);
+
+        dependentFieldsWithInitialCalculation.forEach((dependentId) => {
+            const observer$ = this.#globalService.getDependentObserver(dependentId);
+            observer$?.next(Symbol());
+        });
+    }
+
+    triggerDependentFields() {
+        const dependentIds = this.#globalService.getDependentFieldIds(this.field.id) ?? [];
+
+        console.log('dependent ids', dependentIds);
+
+        dependentIds.forEach((dependentId) => {
+            this.#globalService.triggerDependentObserver(dependentId);
+        });
+    }
+
+    updateSourceOnFieldValueChange(value: unknown) {
+        setToJson(this.field.path, this.#globalService.source, value);
+
+        this.triggerDependentFields();
+    }
+
     handleFormValueChange() {
         this.formControl.valueChanges
-            .pipe(debounceTime(400), distinctUntilChanged(), takeUntil(this.destroy$))
+            .pipe(debounceTime(150), distinctUntilChanged(), takeUntil(this.destroy$))
             .subscribe((value) => {
                 console.log('form contol value', value);
+
+                this.updateSourceOnFieldValueChange(value);
             });
     }
 
@@ -164,7 +204,7 @@ export class TextfieldComponent implements OnInit, OnDestroy {
 
         // calculate value
         try {
-            const calculatedValue = new Function(finalExpression);
+            const calculatedValue = (0, eval)(finalExpression);
 
             console.log('calculated value', calculatedValue);
 
@@ -176,6 +216,22 @@ export class TextfieldComponent implements OnInit, OnDestroy {
     }
 
     // ---------------------- end: calculation -------------
+
+    calculateAndUpdateValueOnDependentChanges() {
+        const value = this.calculateValue() ?? null;
+
+        this.formControl.setValue(value);
+    }
+
+    handleChangesOnDependentChanges() {
+        this.current$?.subscribe(() => {
+            console.log('current trigger for field id:', this.field.id, ', field label:', this.field.label);
+
+            if (this.field.value) {
+                this.calculateAndUpdateValueOnDependentChanges();
+            }
+        });
+    }
 
     ngOnDestroy(): void {
         this.destroy$.next();

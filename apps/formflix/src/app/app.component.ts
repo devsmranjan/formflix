@@ -20,48 +20,127 @@ export class AppComponent implements OnInit {
     fields: TField[] = [
         {
             id: 1,
-            label: 'Label A',
-            name: 'LABEL_A',
+            label: 'Field A: B + C',
+            name: 'FIELD_A',
             tag: EFieldTag.Input,
             type: 'number',
-            path: '$.invoice.a',
-            required: true,
-            hint: 'Name should be atleast of 5 characters',
-            readonly: false,
-            defaultValue: '0000',
+            path: '$.data.field_a',
+            dependsOn: ['2', 3],
+            value: {
+                dataMap: {
+                    FIELD_B: {
+                        query: '$.data.field_b',
+                    },
+                    FIELD_C: {
+                        query: '$.data.field_c',
+                    },
+                },
+                expression: '{FIELD_B} + {FIELD_C}',
+            },
+            calculateValueInitially: true,
+            show: true,
         },
         {
-            id: 2,
-            label: 'Label B',
-            name: 'LABEL_B',
+            id: '2',
+            label: 'Field B: C * 2',
+            name: 'FIELD_B',
             tag: EFieldTag.Input,
             type: 'number',
-            path: '$.invoice.b',
-            required: true,
-            hint: 'Name should be atleast of 5 characters',
-            readonly: false,
-            defaultValue: '0000',
+            path: '$.data.field_b',
+            dependsOn: [3],
+            value: {
+                dataMap: {
+                    FIELD_C: {
+                        query: '$.data.field_c',
+                    },
+                },
+                expression: '{FIELD_C} * 2',
+            },
+            calculateValueInitially: true,
+            show: true,
         },
         {
             id: 3,
-            label: 'Label C',
-            name: 'LABEL_C',
+            label: 'Field C: {FIELD_D} * 2',
+            name: 'FIELD_C',
             tag: EFieldTag.Input,
             type: 'number',
-            path: '$.invoice.c',
-            required: true,
-            hint: 'Name should be atleast of 5 characters',
-            readonly: false,
-            defaultValue: '0000',
+            path: '$.data.field_c',
+            show: true,
+            dependsOn: [4],
+            value: {
+                dataMap: {
+                    FIELD_D: {
+                        query: '$.data.field_d',
+                    },
+                },
+                expression: '{FIELD_D} * 2',
+            },
+            calculateValueInitially: true,
+        },
+        {
+            id: 4,
+            label: 'Field D: E * 3',
+            name: 'FIELD_D',
+            tag: EFieldTag.Input,
+            type: 'number',
+            path: '$.data.field_d',
+            dependsOn: [5],
+            value: {
+                dataMap: {
+                    FIELD_E: {
+                        query: '$.data.field_e',
+                    },
+                },
+                expression: '{FIELD_E} * 3',
+            },
+            calculateValueInitially: true,
+        },
+        {
+            id: 5,
+            label: 'Field E',
+            name: 'FIELD_E',
+            tag: EFieldTag.Input,
+            type: 'number',
+            path: '$.data.field_e',
+        },
+        {
+            id: 6,
+            label: 'Field F: {ALL_PRICE} * 2',
+            name: 'FIELD_F',
+            tag: EFieldTag.Input,
+            type: 'number',
+            path: '$.data.field_e',
+            value: {
+                dataMap: {
+                    ALL_PRICE: {
+                        query: '$.data..price',
+                        fn: 'SUM',
+                    },
+                },
+                expression: '{ALL_PRICE} * 2',
+            },
+            calculateValueInitially: true,
         },
     ];
 
     ngOnInit(): void {
         this.globalService.source = {
-            invoice: {
-                a: 10,
-                b: 20,
-                c: 30,
+            data: {
+                field_a: 2,
+                field_b: 5,
+                field_c: 2,
+                field_d: 5,
+                field_e: 4,
+                a: {
+                    price: 1,
+                    b: {
+                        price: 2,
+                        c: {
+                            price: null,
+                        },
+                    },
+                },
             },
         };
 
