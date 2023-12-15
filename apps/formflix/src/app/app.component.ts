@@ -38,5 +38,7 @@ export class AppComponent implements OnInit {
                 status: 'pending',
             },
         };
+
+        this.globalService.fields = [this.field];
     }
 }

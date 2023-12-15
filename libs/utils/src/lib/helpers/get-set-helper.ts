@@ -1,6 +1,8 @@
 import { JSONPath } from 'jsonpath-plus';
 
-export const getFromJson = (path: string, json: Record<string, unknown> | unknown[]) => {
+export const getFromJson = (path: string, json: Record<string, unknown> | unknown[] | null) => {
+    if (!json) return;
+
     return JSONPath({
         path,
         json,
@@ -14,6 +16,8 @@ type TFullPayload = {
 };
 
 export const setToJson = (path: string, json: Record<string, unknown> | unknown[], value: unknown) => {
+    if (!json) return;
+
     return JSONPath({
         path,
         json,

@@ -6,7 +6,9 @@
         "@angular/core": "^17.0.0",
         "@nx/angular": "17.2.3",
         "@formflix/utils": "*",
-        "daisyui": "^4.4.19"
+        "daisyui": "^4.4.19",
+        "@angular/forms": "~17.0.0",
+        "rxjs": "~7.8.0"
     },
     "dependencies": {},
     "sideEffects": false

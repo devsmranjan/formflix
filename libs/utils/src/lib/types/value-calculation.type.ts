@@ -1,6 +1,6 @@
-import { TFn } from './fn.type';
+import { TCalculationDataMap } from './calculation-data-map.type';
 
 export type TValueCalculation = {
-    dataMap: Record<string, { query: string; fn?: TFn }>;
+    dataMap: TCalculationDataMap;
     expression: string;
 };

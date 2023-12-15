@@ -6,13 +6,13 @@ import { TField, TId } from '../types';
 
 @Injectable()
 export class GlobalService {
-    #source: Record<string, unknown> | null = null;
+    #source: Record<string, unknown> | unknown[] | null = null;
     #fields: TField[] = [];
     #fieldMap: Map<TId, TField> = new Map<TId, TField>();
     #dependentObserverMap = new Map<TId, Subject<symbol>>();
     #dependentAndFieldMap: Map<TId, TId[]> = new Map<TId, TId[]>();
 
-    get source(): Record<string, unknown> | null {
+    get source(): Record<string, unknown> | unknown[] | null {
         return this.#source;
     }
 
