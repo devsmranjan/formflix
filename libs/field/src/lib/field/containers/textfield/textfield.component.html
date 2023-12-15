@@ -1,7 +1,7 @@
 <label class="form-control w-full max-w-xs">
     <formflix-top-label [message]="field.label" [showRequiredSymbol]="field.required ?? false" />
 
-    <input [type]="field.type" class="input input-bordered w-full max-w-xs" />
+    <input [type]="field.type" [formControl]="formControl" class="input input-bordered w-full max-w-xs" />
 
     @if (error() !== null) {
         <formflix-bottom-label *ngIf="error() as error" [message]="error" colorClass="text-gray-400" />

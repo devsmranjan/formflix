@@ -25,7 +25,7 @@ export type TFieldBase = {
     required?: boolean;
     readonly?: boolean;
     dependsOn?: TId[];
-    // defaultValue?: any;
+    defaultValue?: unknown;
     value?: TValueCalculation;
     calculateValueInitially?: boolean;
     show?: boolean;
