@@ -1,1 +1,5 @@
-<p>subsection works!</p>
+<section>
+    @for (field of globalService.fields; track field.id) {
+        <formflix-field [field]="field" />
+    }
+</section>

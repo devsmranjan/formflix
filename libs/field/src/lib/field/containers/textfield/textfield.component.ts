@@ -164,7 +164,7 @@ export class TextfieldComponent implements OnInit, OnDestroy {
 
         // calculate value
         try {
-            const calculatedValue = eval(finalExpression);
+            const calculatedValue = new Function(finalExpression);
 
             console.log('calculated value', calculatedValue);
 
