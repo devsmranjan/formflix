@@ -3,14 +3,14 @@ import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
 
 import { TField } from '@formflix/utils';
 
-import { TextfieldComponent } from './containers';
+import { TextareaComponent, TextfieldComponent } from './containers';
 
 @Component({
     selector: 'formflix-field',
     standalone: true,
-    imports: [CommonModule, TextfieldComponent],
+    imports: [CommonModule, TextfieldComponent, TextareaComponent],
     templateUrl: './field.component.html',
-    styleUrl: './field.component.less',
+    styleUrl: './field.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class FieldComponent {

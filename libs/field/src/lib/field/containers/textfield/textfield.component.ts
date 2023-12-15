@@ -16,5 +16,5 @@ import { BottomLabelComponent, TopLabelComponent } from '../../ui';
 export class TextfieldComponent {
     @Input({ required: true }) field!: TInputField;
 
-    error = signal<string | null>('sds');
+    error = signal<string | null>(null);
 }

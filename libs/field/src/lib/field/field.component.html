@@ -6,6 +6,10 @@
             <formflix-textfield [field]="field" />
         }
 
+        @case ('textarea') {
+            <formflix-textarea [field]="field" />
+        }
+
         @default {
             <p>Not able map with any field</p>
         }
