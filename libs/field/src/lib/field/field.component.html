@@ -1,5 +1,5 @@
 @if (field.readonly) {
-    <p>Show value for field: {{ field.label }}</p>
+    <p>{{ getValue(field.path) }}</p>
 } @else {
     @switch (field.tag) {
         @case ('input') {

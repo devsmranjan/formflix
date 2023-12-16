@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, Input, OnDestroy, OnInit, inject, signal } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 
-import { GlobalService, TCalculationDataMap, TInputField, getFromJson, setToJson } from '@formflix/utils';
+import { GlobalService, TCalculationDataMap, TInputFieldReadAndWrite, getFromJson, setToJson } from '@formflix/utils';
 
 import { Subject, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs';
 
@@ -17,7 +17,7 @@ import { BottomLabelComponent, TopLabelComponent } from '../../ui';
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TextfieldComponent implements OnInit, OnDestroy {
-    @Input({ required: true }) field!: TInputField;
+    @Input({ required: true }) field!: TInputFieldReadAndWrite;
 
     #globalService = inject(GlobalService);
 
@@ -127,6 +127,10 @@ export class TextfieldComponent implements OnInit, OnDestroy {
 
         if (!Array.isArray(currentValue)) {
             console.log('current value is not an array, current value:', currentValue);
+            return currentValue;
+        }
+
+        if (currentValue.length === 0) {
             return currentValue;
         }
 

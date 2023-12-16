@@ -38,7 +38,6 @@ export class AppComponent implements OnInit {
                 expression: '{FIELD_B} + {FIELD_C}',
             },
             calculateValueInitially: true,
-            show: true,
         },
         {
             id: '2',
@@ -47,17 +46,17 @@ export class AppComponent implements OnInit {
             tag: EFieldTag.Input,
             type: 'number',
             path: '$.data.field_b',
-            dependsOn: [3],
-            value: {
-                dataMap: {
-                    FIELD_C: {
-                        query: '$.data.field_c',
-                    },
-                },
-                expression: '{FIELD_C} * 2',
-            },
-            calculateValueInitially: true,
-            show: true,
+            // dependsOn: [3],
+            // value: {
+            //     dataMap: {
+            //         FIELD_C: {
+            //             query: '$.data.field_c',
+            //         },
+            //     },
+            //     expression: '{FIELD_C} * 2',
+            // },
+            // calculateValueInitially: true,
+            readonly: true,
         },
         {
             id: 3,
@@ -66,7 +65,6 @@ export class AppComponent implements OnInit {
             tag: EFieldTag.Input,
             type: 'number',
             path: '$.data.field_c',
-            show: true,
             dependsOn: [4],
             value: {
                 dataMap: {

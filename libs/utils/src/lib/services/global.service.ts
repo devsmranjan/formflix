@@ -79,6 +79,8 @@ export class GlobalService {
         const dependentObserverMap = new Map<TId, Subject<symbol>>();
 
         fieldMap.forEach((field) => {
+            if (field.readonly) return;
+
             if (field?.dependsOn) {
                 dependentObserverMap.set(field.id, new Subject<symbol>());
             }
@@ -117,6 +119,8 @@ export class GlobalService {
         const dependentAndFieldMap = new Map<TId, TId[]>();
 
         fieldMap.forEach((field) => {
+            if (field.readonly) return;
+
             field?.dependsOn?.forEach((dependent) => {
                 const fields = dependentAndFieldMap.get(dependent) ?? [];
                 fields.push(field.id);
@@ -141,7 +145,11 @@ export class GlobalService {
         return dependentFieldIds.filter((dependentFieldId) => {
             const dependentField = this.#fieldMap.get(dependentFieldId);
 
-            return dependentField?.calculateValueInitially;
+            if (!dependentField) return false;
+
+            if (dependentField.readonly) return false;
+
+            return dependentField.calculateValueInitially;
         });
     }
 }

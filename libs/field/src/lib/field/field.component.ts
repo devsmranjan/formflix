@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input, inject } from '@angular/core';
 
-import { TField } from '@formflix/utils';
+import { GlobalService, TField, getFromJson } from '@formflix/utils';
 
 import { TextareaComponent, TextfieldComponent } from './containers';
 
@@ -15,4 +15,10 @@ import { TextareaComponent, TextfieldComponent } from './containers';
 })
 export class FieldComponent {
     @Input({ required: true }) field!: TField;
+
+    #globalService = inject(GlobalService);
+
+    getValue(path: string) {
+        return getFromJson(path, this.#globalService.source);
+    }
 }
