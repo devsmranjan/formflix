@@ -1,5 +1,5 @@
+import { TCondition } from './condition.type';
 import { TId } from './id.type';
-import { TValueCalculation } from './value-calculation.type';
 
 export enum EFieldTag {
     Input = 'input',
@@ -25,10 +25,10 @@ export type TFieldBase = {
     required?: boolean;
     readonly?: boolean; // if readonly, then cannot change value direct or indirectly
     defaultValue?: unknown;
-    show?: boolean;
     dependsOn?: TId[];
-    value?: TValueCalculation;
+    value?: TCondition;
     calculateValueInitially?: boolean;
+    disable?: boolean | TCondition;
 };
 
 export type TReadonlyOmit = 'dependsOn' | 'value' | 'calculateValueInitially';

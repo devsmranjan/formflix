@@ -2,7 +2,15 @@ import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, Input, OnDestroy, OnInit, inject, signal } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 
-import { GlobalService, TCalculationDataMap, TInputFieldReadAndWrite, getFromJson, setToJson } from '@formflix/utils';
+import {
+    GlobalService,
+    TCondition,
+    TDataMap,
+    TInputFieldReadAndWrite,
+    getFromJson,
+    promiseWait,
+    setToJson,
+} from '@formflix/utils';
 
 import { Subject, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs';
 
@@ -28,11 +36,15 @@ export class TextfieldComponent implements OnInit, OnDestroy {
 
     destroy$ = new Subject<void>();
 
-    ngOnInit(): void {
+    async ngOnInit() {
         console.log('text field component, field:', this.field);
 
         // set initial value
         this.setInitalValue();
+
+        // disable
+        await promiseWait(100);
+        this.handleDisable();
 
         // trigger dependents having initial calculation flag
         this.triggerInitialDependentFields();
@@ -46,6 +58,7 @@ export class TextfieldComponent implements OnInit, OnDestroy {
         this.handleChangesOnDependentChanges();
     }
 
+    // set initial value
     setInitalValue() {
         const { source } = this.#globalService;
 
@@ -64,7 +77,7 @@ export class TextfieldComponent implements OnInit, OnDestroy {
 
         // calculate value initially
         if (this.field.calculateValueInitially) {
-            const calculatedValue = this.calculateValue();
+            const calculatedValue = this.getCalculatedValue();
 
             if (calculatedValue !== undefined) {
                 value = calculatedValue;
@@ -80,6 +93,7 @@ export class TextfieldComponent implements OnInit, OnDestroy {
         this.formControl.setValue(value);
     }
 
+    // trigger dependent fields which have initial calculation flag
     triggerInitialDependentFields() {
         const dependentFieldsWithInitialCalculation =
             this.#globalService.getDependentFieldsWithInitialCalculation(this.field.id) || [];
@@ -92,6 +106,7 @@ export class TextfieldComponent implements OnInit, OnDestroy {
         });
     }
 
+    // trigger dependent fields
     triggerDependentFields() {
         const dependentIds = this.#globalService.getDependentFieldIds(this.field.id) ?? [];
 
@@ -102,25 +117,91 @@ export class TextfieldComponent implements OnInit, OnDestroy {
         });
     }
 
+    // update value in source and trigger dependent fields
     updateSourceOnFieldValueChange(value: unknown) {
         setToJson(this.field.path, this.#globalService.source, value);
 
         this.triggerDependentFields();
     }
 
+    // on change current form value
     handleFormValueChange() {
         this.formControl.valueChanges
             .pipe(debounceTime(150), distinctUntilChanged(), takeUntil(this.destroy$))
             .subscribe((value) => {
-                console.log('form contol value', value);
+                console.log('form contol value of field', this.field.id, value);
 
                 this.updateSourceOnFieldValueChange(value);
             });
     }
 
+    // return calculated value
+    getCalculatedValue() {
+        const valueCondition = this.field?.value;
+
+        if (!valueCondition) return;
+
+        return this.getConditionResult(valueCondition);
+    }
+
+    // return if form needs to be disable or not
+    isDisabled() {
+        const disable = this.field.disable;
+
+        if (disable === undefined) return false;
+
+        if (typeof disable === 'boolean') {
+            return disable;
+        }
+
+        return this.getConditionResult(disable);
+    }
+
+    // update form value
+    handleCalculateAndFormValueUpdate() {
+        const calculatedValue = this.getCalculatedValue();
+
+        if (calculatedValue !== undefined) {
+            this.formControl.setValue(calculatedValue);
+        }
+
+        return calculatedValue;
+    }
+
+    // update form disable/ enable
+    handleDisable() {
+        const disable = this.isDisabled();
+
+        if (disable) {
+            this.formControl.disable();
+
+            return;
+        }
+
+        this.formControl.enable();
+    }
+
+    handleFormChanges() {
+        if (this.field.value !== undefined) {
+            this.handleCalculateAndFormValueUpdate();
+        }
+
+        // disable
+        this.handleDisable();
+    }
+
+    handleChangesOnDependentChanges() {
+        this.current$?.subscribe(() => {
+            console.log('current trigger for field id:', this.field.id, ', field label:', this.field.label);
+
+            this.handleFormChanges();
+        });
+    }
+
     // -------- start: calculation ------------------
 
-    calculateWithFn(dataMap: TCalculationDataMap, key: string, currentValue: unknown) {
+    // use functions to calculate
+    calculateWithFn(dataMap: TDataMap, key: string, currentValue: unknown) {
         const fn = dataMap[key]?.fn;
 
         if (!fn) return currentValue;
@@ -156,7 +237,8 @@ export class TextfieldComponent implements OnInit, OnDestroy {
         }
     }
 
-    getCalculateExpressionValueMap(keys: string[], dataMap: TCalculationDataMap) {
+    // create value map for expression from dataMap
+    getCalculateExpressionValueMap(keys: string[], dataMap: TDataMap) {
         const expressionValueMap: Record<string, unknown> = {};
 
         for (const key of keys) {
@@ -174,6 +256,7 @@ export class TextfieldComponent implements OnInit, OnDestroy {
         return expressionValueMap;
     }
 
+    // generate final expression and return
     getFinalExpression(expression: string, keys: string[], valueMap: Record<string, unknown>) {
         let finalExpression = expression;
 
@@ -190,12 +273,9 @@ export class TextfieldComponent implements OnInit, OnDestroy {
         return finalExpression;
     }
 
-    calculateValue() {
-        const valueCondition = this.field?.value;
-
-        if (!valueCondition) return;
-
-        const { dataMap, expression } = valueCondition;
+    // get result from condition
+    getConditionResult(condition: TCondition): unknown {
+        const { dataMap, expression } = condition;
 
         const expressionKeys = Object.keys(dataMap);
 
@@ -215,27 +295,12 @@ export class TextfieldComponent implements OnInit, OnDestroy {
             return calculatedValue;
         } catch (error) {
             console.error(`error - ${this.field.label}:`, error);
-            return;
         }
+
+        return;
     }
 
     // ---------------------- end: calculation -------------
-
-    calculateAndUpdateValueOnDependentChanges() {
-        const value = this.calculateValue() ?? null;
-
-        this.formControl.setValue(value);
-    }
-
-    handleChangesOnDependentChanges() {
-        this.current$?.subscribe(() => {
-            console.log('current trigger for field id:', this.field.id, ', field label:', this.field.label);
-
-            if (this.field.value) {
-                this.calculateAndUpdateValueOnDependentChanges();
-            }
-        });
-    }
 
     ngOnDestroy(): void {
         this.destroy$.next();

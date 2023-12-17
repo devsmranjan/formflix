@@ -38,6 +38,14 @@ export class AppComponent implements OnInit {
                 expression: '{FIELD_B} + {FIELD_C}',
             },
             calculateValueInitially: true,
+            disable: {
+                dataMap: {
+                    FIELD_C: {
+                        query: '$.data.field_c',
+                    },
+                },
+                expression: '{FIELD_C} === 100',
+            },
         },
         {
             id: '2',
