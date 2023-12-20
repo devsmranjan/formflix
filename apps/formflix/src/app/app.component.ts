@@ -4,7 +4,7 @@ import { RouterModule } from '@angular/router';
 import { FieldComponent } from '@formflix/field';
 import { SectionComponent } from '@formflix/section';
 import { SubsectionComponent } from '@formflix/subsection';
-import { Global2Service, GlobalService, TTemplateZod } from '@formflix/utils';
+import { Global2Service, GlobalService, TTemplateZod, setToJson } from '@formflix/utils';
 
 @Component({
     standalone: true,
@@ -245,32 +245,41 @@ export class AppComponent implements OnInit {
         },
     };
 
-    ngOnInit(): void {
-        console.log('App initiated');
-        const source = {
-            data: {
-                field_a: 2,
-                field_b: 5,
-                field_c: 2,
-                field_d: 5,
-                field_e: 4,
-                a: {
-                    price: 1,
-                    b: {
-                        price: 2,
-                        c: {
-                            price: null,
-                        },
+    source = {
+        data: {
+            field_a: 2,
+            field_b: 5,
+            field_c: 2,
+            field_d: 5,
+            field_e: 4,
+            a: {
+                price: 1,
+                b: {
+                    price: 2,
+                    c: {
+                        price: null,
                     },
                 },
             },
-        };
+        },
+    };
 
-        this.global2Service.setSource(source);
+    ngOnInit(): void {
+        console.log('App initiated');
+
+        this.global2Service.setSource(this.source);
         this.global2Service.setTemplate(this.template);
     }
 
     getSections() {
         return this.global2Service.getSections();
+    }
+
+    updateSource() {
+        setToJson('$.data.field_b', this.source, 100);
+    }
+
+    updateAllFieldsSilently() {
+        this.global2Service.updateAllFieldValueFromSource();
     }
 }

@@ -252,6 +252,17 @@ export class Global2Service {
         fieldFormControl.setValue(value);
     }
 
+    // update all field value silently
+    updateAllFieldValueFromSource() {
+        this.#fieldMap.forEach((field) => {
+            const formControl = this.getFieldFormRef(field.id, field.subsectionId, field.sectionId);
+
+            if (!formControl) return;
+
+            formControl.setValue(getFromJson(field.path, this.#source()));
+        });
+    }
+
     getFieldValueDependentFieldIds(id: TIdZod) {
         return this.#fieldValueDependentAndFieldMap.get(id);
     }
