@@ -15,9 +15,9 @@ import { EFieldTag, Global2Service, GlobalService, TField, TTemplateZod } from '
     providers: [GlobalService, Global2Service],
 })
 export class AppComponent implements OnInit {
-    globalService = inject(GlobalService);
+    // globalService = inject(GlobalService);
 
-    #globalService2 = inject(Global2Service);
+    global2Service = inject(Global2Service);
 
     fields: TField[] = [
         {
@@ -173,9 +173,10 @@ export class AppComponent implements OnInit {
     };
 
     ngOnInit(): void {
-        this.#globalService2.setTemplate(this.template);
+        console.log('App initiated');
+        this.global2Service.setTemplate(this.template);
 
-        this.globalService.source = {
+        const source = {
             data: {
                 field_a: 2,
                 field_b: 5,
@@ -194,6 +195,10 @@ export class AppComponent implements OnInit {
             },
         };
 
-        this.globalService.fields = this.fields;
+        this.global2Service.setSource(source);
+    }
+
+    getSections() {
+        return this.global2Service.getSections();
     }
 }

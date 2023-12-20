@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, Input, inject } from '@angular/core';
 
-import { GlobalService, TField, getFromJson } from '@formflix/utils';
+import { GlobalService, TFieldZod, getFromJson } from '@formflix/utils';
 
 import { TextareaComponent, TextfieldComponent } from './containers';
 import { Textfield2Component } from './containers/textfield2/textfield2.component';
@@ -15,7 +15,7 @@ import { Textfield2Component } from './containers/textfield2/textfield2.componen
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class FieldComponent {
-    @Input({ required: true }) field!: TField;
+    @Input({ required: true }) field!: TFieldZod;
 
     #globalService = inject(GlobalService);
 

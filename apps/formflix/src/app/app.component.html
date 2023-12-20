@@ -1,5 +1,7 @@
-@if (globalService.source) {
-    <!-- <formflix-field [field]="field" /> -->
-
-    <formflix-subsection />
+@if (global2Service.getSource() && global2Service.getTemplate()()) {
+    <section>
+        @for (section of getSections(); track section.id) {
+            <formflix-section [section]="section" />
+        }
+    </section>
 }

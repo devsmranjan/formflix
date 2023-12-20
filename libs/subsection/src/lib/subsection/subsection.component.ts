@@ -1,8 +1,8 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input, inject } from '@angular/core';
 
 import { FieldComponent } from '@formflix/field';
-import { GlobalService } from '@formflix/utils';
+import { Global2Service, TSubsectionZod } from '@formflix/utils';
 
 @Component({
     selector: 'formflix-subsection',
@@ -13,5 +13,11 @@ import { GlobalService } from '@formflix/utils';
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SubsectionComponent {
-    globalService = inject(GlobalService);
+    global2Service = inject(Global2Service);
+
+    @Input({ required: true }) subsection!: TSubsectionZod;
+
+    getFields() {
+        return this.global2Service.getFields(this.subsection.id, this.subsection.sectionId);
+    }
 }

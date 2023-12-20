@@ -193,7 +193,7 @@ export class Global2Service {
     // -------------- ----------------
 
     getFieldFormRef(fieldId: TIdZod, subsectionId: TIdZod, sectionId: TIdZod) {
-        return this.#form?.get(`${sectionId}`)?.get(`${subsectionId}`)?.get(`${fieldId}`);
+        return this.#form?.get(`${sectionId}`)?.get(`${subsectionId}`)?.get(`${fieldId}`) as FormControl;
     }
 
     getSubsectionFormRef(subsectionId: TIdZod, sectionId: TIdZod) {
@@ -205,4 +205,34 @@ export class Global2Service {
     }
 
     // end: form ------------------------------------------
+
+    getFields(subsectionId: TIdZod, sectionId: TIdZod) {
+        const template = this.#template();
+
+        const fieldMap = template?.sections?.[sectionId]?.subsections?.[subsectionId]?.fields;
+
+        if (!fieldMap) return [];
+
+        return Object.values(fieldMap);
+    }
+
+    getSubsections(sectionId: TIdZod) {
+        const template = this.#template();
+
+        const subsectionMap = template?.sections?.[sectionId]?.subsections;
+
+        if (!subsectionMap) return [];
+
+        return Object.values(subsectionMap);
+    }
+
+    getSections() {
+        const template = this.#template();
+
+        const sectionMap = template?.sections;
+
+        if (!sectionMap) return [];
+
+        return Object.values(sectionMap);
+    }
 }
