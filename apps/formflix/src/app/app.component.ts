@@ -4,7 +4,7 @@ import { RouterModule } from '@angular/router';
 import { FieldComponent } from '@formflix/field';
 import { SectionComponent } from '@formflix/section';
 import { SubsectionComponent } from '@formflix/subsection';
-import { EFieldTag, GlobalService, TField } from '@formflix/utils';
+import { EFieldTag, Global2Service, GlobalService, TField, TTemplateZod } from '@formflix/utils';
 
 @Component({
     standalone: true,
@@ -12,10 +12,12 @@ import { EFieldTag, GlobalService, TField } from '@formflix/utils';
     selector: 'formflix-root',
     templateUrl: './app.component.html',
     styleUrl: './app.component.scss',
-    providers: [GlobalService],
+    providers: [GlobalService, Global2Service],
 })
 export class AppComponent implements OnInit {
     globalService = inject(GlobalService);
+
+    #globalService2 = inject(Global2Service);
 
     fields: TField[] = [
         {
@@ -130,7 +132,49 @@ export class AppComponent implements OnInit {
         },
     ];
 
+    template: Partial<TTemplateZod> = {
+        label: 'Form',
+        sections: {
+            1111: {
+                id: 1111,
+                label: 'Section 1',
+                subsections: {
+                    2222: {
+                        id: 2222,
+                        sectionId: 1111,
+                        label: 'Subsection 1',
+                        fields: {
+                            3333: {
+                                id: 3333,
+                                sectionId: 1111,
+                                subsectionId: 2222,
+                                name: 'Field 1',
+                                label: 'Field 1',
+                            },
+                        },
+                    },
+                    4444: {
+                        id: 4444,
+                        sectionId: 1111,
+                        label: 'Subsection 2',
+                        fields: {
+                            5555: {
+                                id: 5555,
+                                sectionId: 1111,
+                                subsectionId: 4444,
+                                name: 'Field 1',
+                                label: 'Field 1',
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    };
+
     ngOnInit(): void {
+        this.#globalService2.setTemplate(this.template);
+
         this.globalService.source = {
             data: {
                 field_a: 2,
