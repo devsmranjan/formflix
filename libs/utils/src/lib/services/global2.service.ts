@@ -198,14 +198,16 @@ export class Global2Service {
     }
 
     getSubsectionFormRef(subsectionId: TIdZod, sectionId: TIdZod) {
-        return this.#form?.get(`${sectionId}`)?.get(`${subsectionId}`);
+        return this.#form?.get(`${sectionId}`)?.get(`${subsectionId}`) as FormGroup;
     }
 
     getSectionFormRef(sectionId: TIdZod) {
-        return this.#form?.get(`${sectionId}`);
+        return this.#form?.get(`${sectionId}`) as FormGroup;
     }
 
     // end: form ------------------------------------------
+
+    // start: get list of fields, subsections, sections -------------------------------
 
     getFields(subsectionId: TIdZod, sectionId: TIdZod) {
         const template = this.#template();
@@ -235,5 +237,26 @@ export class Global2Service {
         if (!sectionMap) return [];
 
         return Object.values(sectionMap);
+    }
+
+    // end: get list of fields, subsections, sections -------------------------------
+
+    getCurrentFieldObserver(fieldId: TIdZod) {
+        return this.#fieldDependentObserverMap.get(fieldId);
+    }
+
+    // form value
+    updateFormValue(value: unknown, fieldId: TIdZod, subsectionId: TIdZod, sectionId: TIdZod) {
+        const fieldFormControl = this.getFieldFormRef(fieldId, subsectionId, sectionId);
+
+        fieldFormControl.setValue(value);
+    }
+
+    getFieldValueDependentFieldIds(id: TIdZod) {
+        return this.#fieldValueDependentAndFieldMap.get(id);
+    }
+
+    triggerFieldDependentObserver(id: TIdZod) {
+        this.#fieldDependentObserverMap.get(id)?.next(Symbol());
     }
 }

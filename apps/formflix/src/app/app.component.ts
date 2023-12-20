@@ -135,38 +135,109 @@ export class AppComponent implements OnInit {
     template: Partial<TTemplateZod> = {
         label: 'Form',
         sections: {
-            1111: {
-                id: 1111,
+            1: {
+                id: 1,
                 label: 'Section 1',
                 subsections: {
-                    2222: {
-                        id: 2222,
-                        sectionId: 1111,
+                    2: {
+                        id: 2,
+                        sectionId: 1,
                         label: 'Subsection 1',
                         fields: {
-                            3333: {
-                                id: 3333,
-                                sectionId: 1111,
-                                subsectionId: 2222,
-                                name: 'Field 1',
-                                label: 'Field 1',
+                            3: {
+                                id: 3,
+                                sectionId: 1,
+                                subsectionId: 2,
+                                name: 'Field A',
+                                label: 'Field A: B + C',
                                 path: '$.data.field_a',
+                                value: {
+                                    dataMap: {
+                                        FIELD_B: {
+                                            query: '$.data.field_b',
+                                        },
+                                        FIELD_C: {
+                                            query: '$.data.field_c',
+                                        },
+                                    },
+                                    expression: '{FIELD_B} + {FIELD_C}',
+                                },
+                                valueDependsOn: [5, 6],
                             },
                         },
                     },
-                    4444: {
-                        id: 4444,
-                        sectionId: 1111,
+                    4: {
+                        id: 4,
+                        sectionId: 1,
                         label: 'Subsection 2',
                         fields: {
-                            5555: {
-                                id: 5555,
-                                sectionId: 1111,
-                                subsectionId: 4444,
-                                name: 'Field 1',
-                                label: 'Field 1',
+                            5: {
+                                id: 5,
+                                sectionId: 1,
+                                subsectionId: 4,
+                                name: 'Field B',
+                                label: 'Field B: C * 2',
                                 path: '$.data.field_b',
+                                value: {
+                                    dataMap: {
+                                        FIELD_C: {
+                                            query: '$.data.field_c',
+                                        },
+                                    },
+                                    expression: '{FIELD_C} * 2',
+                                },
+                                valueDependsOn: [6],
                             },
+                            6: {
+                                id: 6,
+                                sectionId: 1,
+                                subsectionId: 4,
+                                name: 'Field C',
+                                label: 'Field C: {FIELD_D} * 2',
+                                path: '$.data.field_c',
+                                value: {
+                                    dataMap: {
+                                        FIELD_D: {
+                                            query: '$.data.field_d',
+                                        },
+                                    },
+                                    expression: '{FIELD_D} * 2',
+                                },
+                                valueDependsOn: [7],
+                            },
+                            7: {
+                                id: 7,
+                                sectionId: 1,
+                                subsectionId: 4,
+                                name: 'Field D',
+                                label: 'Field D: E * 3',
+                                path: '$.data.field_d',
+                                value: {
+                                    dataMap: {
+                                        FIELD_E: {
+                                            query: '$.data.field_e',
+                                        },
+                                    },
+                                    expression: '{FIELD_E} * 3',
+                                },
+                                valueDependsOn: [8],
+                            },
+                            8: {
+                                id: 8,
+                                sectionId: 1,
+                                subsectionId: 4,
+                                name: 'Field E',
+                                label: 'Field E',
+                                path: '$.data.field_e',
+                            },
+                            // 9: {
+                            //     id: 9,
+                            //     sectionId: 1,
+                            //     subsectionId: 4,
+                            //     name: 'Field F: {ALL_PRICE} * 2',
+                            //     label: 'Field F',
+                            //     path: '$.data.field_e',
+                            // },
                         },
                     },
                 },
