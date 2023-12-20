@@ -4,7 +4,7 @@ import { RouterModule } from '@angular/router';
 import { FieldComponent } from '@formflix/field';
 import { SectionComponent } from '@formflix/section';
 import { SubsectionComponent } from '@formflix/subsection';
-import { EFieldTag, Global2Service, GlobalService, TField, TTemplateZod } from '@formflix/utils';
+import { Global2Service, GlobalService, TTemplateZod } from '@formflix/utils';
 
 @Component({
     standalone: true,
@@ -19,118 +19,118 @@ export class AppComponent implements OnInit {
 
     global2Service = inject(Global2Service);
 
-    fields: TField[] = [
-        {
-            id: 1,
-            label: 'Field A: B + C',
-            name: 'FIELD_A',
-            tag: EFieldTag.Input,
-            type: 'number',
-            path: '$.data.field_a',
-            dependsOn: ['2', 3],
-            value: {
-                dataMap: {
-                    FIELD_B: {
-                        query: '$.data.field_b',
-                    },
-                    FIELD_C: {
-                        query: '$.data.field_c',
-                    },
-                },
-                expression: '{FIELD_B} + {FIELD_C}',
-            },
-            calculateValueInitially: true,
-            disable: {
-                dataMap: {
-                    FIELD_C: {
-                        query: '$.data.field_c',
-                    },
-                },
-                expression: '{FIELD_C} === 100',
-            },
-        },
-        {
-            id: '2',
-            label: 'Field B: C * 2',
-            name: 'FIELD_B',
-            tag: EFieldTag.Input,
-            type: 'number',
-            path: '$.data.field_b',
-            // dependsOn: [3],
-            // value: {
-            //     dataMap: {
-            //         FIELD_C: {
-            //             query: '$.data.field_c',
-            //         },
-            //     },
-            //     expression: '{FIELD_C} * 2',
-            // },
-            // calculateValueInitially: true,
-            readonly: true,
-        },
-        {
-            id: 3,
-            label: 'Field C: {FIELD_D} * 2',
-            name: 'FIELD_C',
-            tag: EFieldTag.Input,
-            type: 'number',
-            path: '$.data.field_c',
-            dependsOn: [4],
-            value: {
-                dataMap: {
-                    FIELD_D: {
-                        query: '$.data.field_d',
-                    },
-                },
-                expression: '{FIELD_D} * 2',
-            },
-            calculateValueInitially: true,
-        },
-        {
-            id: 4,
-            label: 'Field D: E * 3',
-            name: 'FIELD_D',
-            tag: EFieldTag.Input,
-            type: 'number',
-            path: '$.data.field_d',
-            dependsOn: [5],
-            value: {
-                dataMap: {
-                    FIELD_E: {
-                        query: '$.data.field_e',
-                    },
-                },
-                expression: '{FIELD_E} * 3',
-            },
-            calculateValueInitially: true,
-        },
-        {
-            id: 5,
-            label: 'Field E',
-            name: 'FIELD_E',
-            tag: EFieldTag.Input,
-            type: 'number',
-            path: '$.data.field_e',
-        },
-        {
-            id: 6,
-            label: 'Field F: {ALL_PRICE} * 2',
-            name: 'FIELD_F',
-            tag: EFieldTag.Input,
-            type: 'number',
-            path: '$.data.field_e',
-            value: {
-                dataMap: {
-                    ALL_PRICE: {
-                        query: '$.data..price',
-                        fn: 'SUM',
-                    },
-                },
-                expression: '{ALL_PRICE} * 2',
-            },
-            calculateValueInitially: true,
-        },
-    ];
+    // fields: TField[] = [
+    //     {
+    //         id: 1,
+    //         label: 'Field A: B + C',
+    //         name: 'FIELD_A',
+    //         tag: EFieldTag.Input,
+    //         type: 'number',
+    //         path: '$.data.field_a',
+    //         dependsOn: ['2', 3],
+    //         value: {
+    //             dataMap: {
+    //                 FIELD_B: {
+    //                     query: '$.data.field_b',
+    //                 },
+    //                 FIELD_C: {
+    //                     query: '$.data.field_c',
+    //                 },
+    //             },
+    //             expression: '{FIELD_B} + {FIELD_C}',
+    //         },
+    //         calculateValueInitially: true,
+    //         disable: {
+    //             dataMap: {
+    //                 FIELD_C: {
+    //                     query: '$.data.field_c',
+    //                 },
+    //             },
+    //             expression: '{FIELD_C} === 100',
+    //         },
+    //     },
+    //     {
+    //         id: '2',
+    //         label: 'Field B: C * 2',
+    //         name: 'FIELD_B',
+    //         tag: EFieldTag.Input,
+    //         type: 'number',
+    //         path: '$.data.field_b',
+    //         // dependsOn: [3],
+    //         // value: {
+    //         //     dataMap: {
+    //         //         FIELD_C: {
+    //         //             query: '$.data.field_c',
+    //         //         },
+    //         //     },
+    //         //     expression: '{FIELD_C} * 2',
+    //         // },
+    //         // calculateValueInitially: true,
+    //         readonly: true,
+    //     },
+    //     {
+    //         id: 3,
+    //         label: 'Field C: {FIELD_D} * 2',
+    //         name: 'FIELD_C',
+    //         tag: EFieldTag.Input,
+    //         type: 'number',
+    //         path: '$.data.field_c',
+    //         dependsOn: [4],
+    //         value: {
+    //             dataMap: {
+    //                 FIELD_D: {
+    //                     query: '$.data.field_d',
+    //                 },
+    //             },
+    //             expression: '{FIELD_D} * 2',
+    //         },
+    //         calculateValueInitially: true,
+    //     },
+    //     {
+    //         id: 4,
+    //         label: 'Field D: E * 3',
+    //         name: 'FIELD_D',
+    //         tag: EFieldTag.Input,
+    //         type: 'number',
+    //         path: '$.data.field_d',
+    //         dependsOn: [5],
+    //         value: {
+    //             dataMap: {
+    //                 FIELD_E: {
+    //                     query: '$.data.field_e',
+    //                 },
+    //             },
+    //             expression: '{FIELD_E} * 3',
+    //         },
+    //         calculateValueInitially: true,
+    //     },
+    //     {
+    //         id: 5,
+    //         label: 'Field E',
+    //         name: 'FIELD_E',
+    //         tag: EFieldTag.Input,
+    //         type: 'number',
+    //         path: '$.data.field_e',
+    //     },
+    //     {
+    //         id: 6,
+    //         label: 'Field F: {ALL_PRICE} * 2',
+    //         name: 'FIELD_F',
+    //         tag: EFieldTag.Input,
+    //         type: 'number',
+    //         path: '$.data.field_e',
+    //         value: {
+    //             dataMap: {
+    //                 ALL_PRICE: {
+    //                     query: '$.data..price',
+    //                     fn: 'SUM',
+    //                 },
+    //             },
+    //             expression: '{ALL_PRICE} * 2',
+    //         },
+    //         calculateValueInitially: true,
+    //     },
+    // ];
 
     template: Partial<TTemplateZod> = {
         label: 'Form',
@@ -150,6 +150,7 @@ export class AppComponent implements OnInit {
                                 subsectionId: 2222,
                                 name: 'Field 1',
                                 label: 'Field 1',
+                                path: '$.data.field_a',
                             },
                         },
                     },
@@ -164,6 +165,7 @@ export class AppComponent implements OnInit {
                                 subsectionId: 4444,
                                 name: 'Field 1',
                                 label: 'Field 1',
+                                path: '$.data.field_b',
                             },
                         },
                     },
@@ -174,8 +176,6 @@ export class AppComponent implements OnInit {
 
     ngOnInit(): void {
         console.log('App initiated');
-        this.global2Service.setTemplate(this.template);
-
         const source = {
             data: {
                 field_a: 2,
@@ -196,6 +196,7 @@ export class AppComponent implements OnInit {
         };
 
         this.global2Service.setSource(source);
+        this.global2Service.setTemplate(this.template);
     }
 
     getSections() {

@@ -12,6 +12,7 @@ export const FieldSchema = object({
     subsectionId: IdSchema,
     name: string().optional(),
     label: string().optional(),
+    path: string(),
     valueDependsOn: array(IdSchema).optional(),
 });
 

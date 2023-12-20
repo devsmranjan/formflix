@@ -3,6 +3,7 @@ import { FormControl, FormGroup } from '@angular/forms';
 
 import { Subject } from 'rxjs';
 
+import { getFromJson } from '../helpers';
 import { TFieldZod, TIdZod, TSectionZod, TSubsectionZod, TTemplateZod, TemplateSchema } from '../schemas';
 
 @Injectable()
@@ -137,7 +138,7 @@ export class Global2Service {
     // start: form ------------------------------------------
 
     createFieldFormControl(field: TFieldZod) {
-        return new FormControl(field.name);
+        return new FormControl(getFromJson(field.path, this.#source()));
     }
 
     createSubsectionFormGroup(subsection: TSubsectionZod) {

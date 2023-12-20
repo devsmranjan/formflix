@@ -4,7 +4,9 @@
     "peerDependencies": {
         "@angular/common": "^17.0.0",
         "@angular/core": "^17.0.0",
-        "@nx/angular": "17.2.3"
+        "@nx/angular": "17.2.3",
+        "@formflix/subsection": "*",
+        "@formflix/utils": "*"
     },
     "dependencies": {},
     "sideEffects": false
