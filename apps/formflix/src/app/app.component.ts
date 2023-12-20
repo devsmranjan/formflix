@@ -163,6 +163,15 @@ export class AppComponent implements OnInit {
                                     expression: '{FIELD_B} + {FIELD_C}',
                                 },
                                 valueDependsOn: [5, 6],
+                                disable: {
+                                    dataMap: {
+                                        FIELD_C: {
+                                            query: '$.data.field_c',
+                                        },
+                                    },
+                                    expression: '{FIELD_C} === 100',
+                                },
+                                disableDependsOn: [6],
                             },
                         },
                     },
@@ -187,6 +196,18 @@ export class AppComponent implements OnInit {
                                     expression: '{FIELD_C} * 2',
                                 },
                                 valueDependsOn: [6],
+                                // disable: {
+                                //     dataMap: {
+                                //         FIELD_B: {
+                                //             query: '$.data.field_b',
+                                //         },
+                                //     },
+                                //     expression: '{FIELD_B} === 5',
+                                // },
+                                // disableDependsOn: [5],
+                                // you can add your own id, because disable will not gonna trigger it;s
+                                // dependents again in 2nd iteration.
+                                // But donot do that, other wise it might happen, you will not gonna able to change
                             },
                             6: {
                                 id: 6,
@@ -249,7 +270,7 @@ export class AppComponent implements OnInit {
         data: {
             field_a: 2,
             field_b: 5,
-            field_c: 2,
+            field_c: 100,
             field_d: 5,
             field_e: 4,
             a: {
@@ -276,7 +297,7 @@ export class AppComponent implements OnInit {
     }
 
     updateSource() {
-        setToJson('$.data.field_b', this.source, 100);
+        setToJson('$.data.field_c', this.source, 100);
     }
 
     updateAllFieldsSilently() {

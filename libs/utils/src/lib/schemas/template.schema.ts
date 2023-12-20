@@ -1,8 +1,4 @@
-import { array, number, object, record, string, union, z } from 'zod';
-
-// const ID_REQUIRED_MESSAGE = 'Id is required';
-// const SUBSECTION_ID_REQUIRED_MESSAGE = 'Subsection id is required';
-// const SECTION_ID_REQUIRED_MESSAGE = 'Section id is required';
+import { array, boolean, number, object, record, string, union, z } from 'zod';
 
 export const IdSchema = union([string(), number()]);
 
@@ -28,6 +24,8 @@ export const FieldSchema = object({
     path: string(),
     value: ConditionSchema.optional(),
     valueDependsOn: array(IdSchema).optional(),
+    disable: union([boolean(), ConditionSchema]).optional(),
+    disableDependsOn: array(IdSchema).optional(),
 });
 
 export const FieldsSchema = record(IdSchema, FieldSchema);

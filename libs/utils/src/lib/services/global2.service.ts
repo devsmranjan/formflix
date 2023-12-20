@@ -14,11 +14,13 @@ export class Global2Service {
     #form: FormGroup | null = null;
     #fieldMap = new Map<string | number, TFieldZod>();
 
-    // field
-    #fieldDependentObserverMap = new Map<TIdZod, Subject<symbol>>();
-
     // field value
+    #fieldValueDependentObserverMap = new Map<TIdZod, Subject<symbol>>();
     #fieldValueDependentAndFieldMap = new Map<TIdZod, TIdZod[]>();
+
+    // field disable
+    #fieldDisableDependentObserverMap = new Map<TIdZod, Subject<symbol>>();
+    #fieldDisableDependentAndFieldMap = new Map<TIdZod, TIdZod[]>();
 
     // source
 
@@ -46,15 +48,19 @@ export class Global2Service {
 
             this.#form = this.createFormFromTemplate(template);
             this.#fieldMap = this.createFieldMap(template);
-            this.#fieldDependentObserverMap = this.createFieldDependentObserverMap(this.#fieldMap); // TODO: You should call this in a subsection component, so that when subsction is visible then only it will create (not create exactly, it should add or remove observables not replace) the observer
+            this.#fieldValueDependentObserverMap = this.createFieldDependentObserverMap(this.#fieldMap); // TODO: You should call this in a subsection component, so that when subsction is visible then only it will create (not create exactly, it should add or remove observables not replace) the observer
+            this.#fieldDisableDependentObserverMap = this.createFieldDependentObserverMap(this.#fieldMap); // TODO: You should call this in a subsection component, so that when subsction is visible then only it will create (not create exactly, it should add or remove observables not replace) the observer
 
             this.#fieldValueDependentAndFieldMap = this.createFieldValueDependentAndFieldMap(this.#fieldMap);
+            this.#fieldDisableDependentAndFieldMap = this.createFieldDisableDependentAndFieldMap(this.#fieldMap);
 
             console.log('Global 2 template', this.#template());
             console.log('Global 2 form', this.#form);
             console.log('Global 2 fieldMap', this.#fieldMap);
-            console.log('Global 2 fieldDependentObserverMap', this.#fieldDependentObserverMap);
+            console.log('Global 2 fieldDependentObserverMap', this.#fieldValueDependentObserverMap);
+            console.log('Global 2 fieldDisableDependentObserverMap', this.#fieldDisableDependentObserverMap);
             console.log('Global 2 fieldValueDependentAndFieldMap', this.#fieldValueDependentAndFieldMap);
+            console.log('Global 2 fieldDisableDependentAndFieldMap', this.#fieldDisableDependentAndFieldMap);
         } catch (error) {
             console.error(error);
         }
@@ -126,6 +132,27 @@ export class Global2Service {
             // if (field.readonly) return;
 
             field?.valueDependsOn?.forEach((dependent) => {
+                const fields = dependentAndFieldMap.get(dependent) ?? [];
+                fields.push(field.id);
+                dependentAndFieldMap.set(dependent, fields);
+            });
+        });
+
+        return dependentAndFieldMap;
+    }
+
+    // create dependent & it's fields map, for field value
+    createFieldDisableDependentAndFieldMap(fieldMap: Map<TIdZod, TFieldZod>) {
+        if (!fieldMap.size) {
+            throw Error('Field map is required');
+        }
+
+        const dependentAndFieldMap = new Map<TIdZod, TIdZod[]>();
+
+        fieldMap.forEach((field) => {
+            // if (field.readonly) return;
+
+            field?.disableDependsOn?.forEach((dependent) => {
                 const fields = dependentAndFieldMap.get(dependent) ?? [];
                 fields.push(field.id);
                 dependentAndFieldMap.set(dependent, fields);
@@ -241,8 +268,12 @@ export class Global2Service {
 
     // end: get list of fields, subsections, sections -------------------------------
 
-    getCurrentFieldObserver(fieldId: TIdZod) {
-        return this.#fieldDependentObserverMap.get(fieldId);
+    getCurrentFieldValueObserver(fieldId: TIdZod) {
+        return this.#fieldValueDependentObserverMap.get(fieldId);
+    }
+
+    getCurrentFieldDisableObserver(fieldId: TIdZod) {
+        return this.#fieldDisableDependentObserverMap.get(fieldId);
     }
 
     // form value
@@ -261,13 +292,81 @@ export class Global2Service {
 
             formControl.setValue(getFromJson(field.path, this.#source()));
         });
+
+        this.triggerAllFieldDisableObservers();
     }
+
+    // start: form disable ----------------
+
+    disableFieldForm(value: boolean, fieldId: TIdZod, subsectionId: TIdZod, sectionId: TIdZod) {
+        const formControl = this.getFieldFormRef(fieldId, subsectionId, sectionId);
+
+        if (!formControl) return;
+
+        if (value) {
+            formControl.disable();
+        } else {
+            formControl.enable();
+        }
+    }
+
+    disableSubsectionForm(value: boolean, subsectionId: TIdZod, sectionId: TIdZod) {
+        const formGroup = this.getSubsectionFormRef(subsectionId, sectionId);
+
+        if (!formGroup) return;
+
+        if (value) {
+            formGroup.disable();
+        } else {
+            formGroup.enable();
+        }
+    }
+
+    disableSectionForm(value: boolean, sectionId: TIdZod) {
+        const formGroup = this.getSectionFormRef(sectionId);
+
+        if (!formGroup) return;
+
+        if (value) {
+            formGroup.disable();
+        } else {
+            formGroup.enable();
+        }
+    }
+
+    disableForm(value: boolean) {
+        const formGroup = this.#form;
+
+        if (!formGroup) return;
+
+        if (value) {
+            formGroup.disable();
+        } else {
+            formGroup.enable();
+        }
+    }
+
+    // end: form disable ----------------
 
     getFieldValueDependentFieldIds(id: TIdZod) {
         return this.#fieldValueDependentAndFieldMap.get(id);
     }
 
-    triggerFieldDependentObserver(id: TIdZod) {
-        this.#fieldDependentObserverMap.get(id)?.next(Symbol());
+    getFieldDisableDependentFieldIds(id: TIdZod) {
+        return this.#fieldDisableDependentAndFieldMap.get(id);
+    }
+
+    triggerFieldValueDependentObserver(id: TIdZod) {
+        this.#fieldValueDependentObserverMap.get(id)?.next(Symbol());
+    }
+
+    triggerFieldDisableDependentObserver(id: TIdZod) {
+        this.#fieldDisableDependentObserverMap.get(id)?.next(Symbol());
+    }
+
+    triggerAllFieldDisableObservers() {
+        this.#fieldMap.forEach((field) => {
+            this.triggerFieldDisableDependentObserver(field.id);
+        });
     }
 }

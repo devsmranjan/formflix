@@ -20,7 +20,8 @@ export class Textfield2Component implements OnInit, OnDestroy {
     #global2Service = inject(Global2Service);
 
     formControl!: FormControl;
-    current$!: Subject<symbol> | undefined;
+    currentValueTrigger$!: Subject<symbol> | undefined;
+    currentDisableTrigger$!: Subject<symbol> | undefined;
 
     destroy$ = new Subject<void>();
 
@@ -28,13 +29,17 @@ export class Textfield2Component implements OnInit, OnDestroy {
         const { id, subsectionId, sectionId } = this.field;
 
         this.formControl = this.#global2Service.getFieldFormRef(id, subsectionId, sectionId);
-        this.current$ = this.#global2Service.getCurrentFieldObserver(id);
+        this.currentValueTrigger$ = this.#global2Service.getCurrentFieldValueObserver(id);
+        this.currentDisableTrigger$ = this.#global2Service.getCurrentFieldDisableObserver(id);
 
         this.handleCurrentObserver();
+
+        // trigger disable
+        this.#global2Service.triggerAllFieldDisableObservers();
     }
 
     handleCurrentObserver() {
-        this.current$?.pipe(takeUntil(this.destroy$)).subscribe(() => {
+        this.currentValueTrigger$?.pipe(takeUntil(this.destroy$)).subscribe(() => {
             const calculatedValue = this.getCalculatedValue();
 
             console.log({ calculatedValue });
@@ -43,6 +48,19 @@ export class Textfield2Component implements OnInit, OnDestroy {
 
             this.#global2Service.updateFormValue(calculatedValue, id, subsectionId, sectionId);
             this.handleFormValue(calculatedValue);
+        });
+
+        this.currentDisableTrigger$?.pipe(takeUntil(this.destroy$)).subscribe(() => {
+            const disable = this.isDisable();
+
+            console.log(this.field.label, disable);
+
+            this.#global2Service.disableFieldForm(
+                disable ? true : false,
+                this.field.id,
+                this.field.subsectionId,
+                this.field.sectionId,
+            );
         });
     }
 
@@ -58,6 +76,11 @@ export class Textfield2Component implements OnInit, OnDestroy {
         this.triggerDependencies();
     }
 
+    // handleFormDisable(value: boolean) {
+    //     this.#global2Service.disableFieldForm(value, this.field.id, this.field.subsectionId, this.field.sectionId)
+    //     // this.triggerFieldDisableDependentObservers()
+    // }
+
     handleFormInput(e: Event) {
         const value = (e.target as HTMLInputElement).value;
 
@@ -71,6 +94,18 @@ export class Textfield2Component implements OnInit, OnDestroy {
         if (!valueCondition) return;
 
         return this.getConditionResult(valueCondition);
+    }
+
+    isDisable() {
+        const disable = this.field?.disable;
+
+        if (disable === undefined) return false;
+
+        if (typeof disable === 'boolean') {
+            return disable;
+        }
+
+        return this.getConditionResult(disable);
     }
 
     // -------- start: calculation ------------------
@@ -183,13 +218,24 @@ export class Textfield2Component implements OnInit, OnDestroy {
         console.log('dependent ids', dependentIds);
 
         dependentIds.forEach((dependentId) => {
-            this.#global2Service.triggerFieldDependentObserver(dependentId);
+            this.#global2Service.triggerFieldValueDependentObserver(dependentId);
+        });
+    }
+
+    triggerFieldDisableDependentObservers() {
+        const dependentIds = this.#global2Service.getFieldDisableDependentFieldIds(this.field.id) ?? [];
+
+        console.log('dependent ids', dependentIds);
+
+        dependentIds.forEach((dependentId) => {
+            this.#global2Service.triggerFieldDisableDependentObserver(dependentId);
         });
     }
 
     // trigger dependent fields
     triggerDependencies() {
         this.triggerFieldValueDependentObservers();
+        this.triggerFieldDisableDependentObservers();
     }
 
     ngOnDestroy(): void {
