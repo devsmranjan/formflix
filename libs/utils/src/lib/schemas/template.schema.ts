@@ -27,6 +27,10 @@ export const FieldSchema = object({
     disable: union([boolean(), ConditionSchema]).optional(),
     disableDependsOn: array(IdSchema).optional(),
     readonly: boolean().optional(),
+    show: union([boolean(), ConditionSchema]).optional(),
+    showDependsOn: array(IdSchema).optional(),
+    hide: union([boolean(), ConditionSchema]).optional(),
+    hideDependsOn: array(IdSchema).optional(),
 });
 
 export const FieldsSchema = record(IdSchema, FieldSchema);

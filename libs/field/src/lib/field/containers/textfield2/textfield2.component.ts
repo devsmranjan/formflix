@@ -2,7 +2,15 @@ import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, Input, OnDestroy, OnInit, inject } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 
-import { Global2Service, TConditionZod, TDataMapZod, TFieldZod, getFromJson, setToJson } from '@formflix/utils';
+import {
+    Global2Service,
+    TConditionZod,
+    TDataMapZod,
+    TFieldZod,
+    getFromJson,
+    promiseWait,
+    setToJson,
+} from '@formflix/utils';
 
 import { Subject, takeUntil } from 'rxjs';
 
@@ -233,9 +241,13 @@ export class Textfield2Component implements OnInit, OnDestroy {
     }
 
     // trigger dependent fields
-    triggerDependencies() {
-        this.triggerFieldValueDependentObservers();
+    async triggerDependencies() {
+        this.#global2Service.triggerShowHideObservers(this.field.id);
+
+        await promiseWait(200);
+
         this.triggerFieldDisableDependentObservers();
+        this.triggerFieldValueDependentObservers();
     }
 
     ngOnDestroy(): void {

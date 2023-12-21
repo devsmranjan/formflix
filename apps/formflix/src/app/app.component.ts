@@ -243,6 +243,15 @@ export class AppComponent implements OnInit {
                                     expression: '{FIELD_E} * 3',
                                 },
                                 valueDependsOn: [8],
+                                hide: {
+                                    dataMap: {
+                                        FIELD_E: {
+                                            query: '$.data.field_e',
+                                        },
+                                    },
+                                    expression: '{FIELD_E} == 100',
+                                },
+                                showDependsOn: [8],
                             },
                             8: {
                                 id: 8,

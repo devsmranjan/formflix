@@ -1,7 +1,7 @@
 import { Injectable, signal } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
 
-import { Subject } from 'rxjs';
+import { BehaviorSubject, Subject } from 'rxjs';
 
 import { getFromJson } from '../helpers';
 import { TFieldZod, TIdZod, TSectionZod, TSubsectionZod, TTemplateZod, TemplateSchema } from '../schemas';
@@ -12,6 +12,7 @@ export class Global2Service {
 
     #template = signal<TTemplateZod | null>(null);
     #form: FormGroup | null = null;
+
     #fieldMap = new Map<string | number, TFieldZod>();
 
     // field value
@@ -21,6 +22,16 @@ export class Global2Service {
     // field disable
     #fieldDisableDependentObserverMap = new Map<TIdZod, Subject<symbol>>();
     #fieldDisableDependentAndFieldMap = new Map<TIdZod, TIdZod[]>();
+
+    // subsection
+    #subsectionMap = new Map<string | number, TSubsectionZod>();
+    #subsectionFieldShowHideDependentObserverMap = new Map<TIdZod, BehaviorSubject<symbol>>();
+
+    // show
+    #fieldShowDependentAndFieldMap = new Map<TIdZod, TIdZod[]>();
+
+    // hide
+    #fieldHideDependentAndFieldMap = new Map<TIdZod, TIdZod[]>();
 
     // source
 
@@ -47,12 +58,27 @@ export class Global2Service {
             this.#template.set(template);
 
             this.#form = this.createFormFromTemplate(template);
-            this.#fieldMap = this.createFieldMap(template);
+
+            const [fieldMap, subsectionMap] = this.createMaps(template);
+
+            if (fieldMap) {
+                this.#fieldMap = fieldMap;
+            }
+
+            if (subsectionMap) {
+                this.#subsectionMap = subsectionMap;
+            }
+
             this.#fieldValueDependentObserverMap = this.createFieldDependentObserverMap(this.#fieldMap); // TODO: You should call this in a subsection component, so that when subsction is visible then only it will create (not create exactly, it should add or remove observables not replace) the observer
             this.#fieldDisableDependentObserverMap = this.createFieldDependentObserverMap(this.#fieldMap); // TODO: You should call this in a subsection component, so that when subsction is visible then only it will create (not create exactly, it should add or remove observables not replace) the observer
+            this.#subsectionFieldShowHideDependentObserverMap = this.createSubsectionDependentObserverMap(
+                this.#subsectionMap,
+            );
 
             this.#fieldValueDependentAndFieldMap = this.createFieldValueDependentAndFieldMap(this.#fieldMap);
             this.#fieldDisableDependentAndFieldMap = this.createFieldDisableDependentAndFieldMap(this.#fieldMap);
+            this.#fieldShowDependentAndFieldMap = this.createFieldShowDependentAndFieldMap(this.#fieldMap);
+            this.#fieldHideDependentAndFieldMap = this.createFieldHideDependentAndFieldMap(this.#fieldMap);
 
             console.log('Global 2 template', this.#template());
             console.log('Global 2 form', this.#form);
@@ -61,30 +87,35 @@ export class Global2Service {
             console.log('Global 2 fieldDisableDependentObserverMap', this.#fieldDisableDependentObserverMap);
             console.log('Global 2 fieldValueDependentAndFieldMap', this.#fieldValueDependentAndFieldMap);
             console.log('Global 2 fieldDisableDependentAndFieldMap', this.#fieldDisableDependentAndFieldMap);
+            console.log('Global 2 fieldShowDependentAndFieldMap', this.#fieldShowDependentAndFieldMap);
+            console.log('Global 2 fieldHideDependentAndFieldMap', this.#fieldHideDependentAndFieldMap);
         } catch (error) {
             console.error(error);
         }
     }
 
     // create field map
-    createFieldMap(template: Partial<TTemplateZod>) {
-        const fieldMap = new Map<string | number, TFieldZod>();
+    createMaps(template: Partial<TTemplateZod>): [Map<TIdZod, TFieldZod>, Map<TIdZod, TSubsectionZod>] | [null, null] {
+        const fieldMap = new Map<TIdZod, TFieldZod>();
+        const subsectionMap = new Map<TIdZod, TSubsectionZod>();
 
         try {
             const parsedValue = TemplateSchema.parse(template);
 
             const sections = parsedValue.sections;
 
-            if (!sections) return fieldMap;
+            if (!sections) return [null, null];
 
-            Object.keys(sections).forEach((sectionKey) => {
-                const section = sections[sectionKey];
+            Object.keys(sections).forEach((sectionId) => {
+                const section = sections[sectionId];
                 const subsections = section.subsections;
 
                 if (!subsections) return;
 
-                Object.keys(subsections).forEach((subsectionKey) => {
-                    const subsection = subsections[subsectionKey];
+                Object.keys(subsections).forEach((subsectionId) => {
+                    const subsection = subsections[subsectionId];
+                    subsectionMap.set(subsection.id, subsection);
+
                     const fields = subsection.fields;
 
                     if (!fields) return;
@@ -92,17 +123,31 @@ export class Global2Service {
                     Object.keys(fields).forEach((fieldId) => {
                         const field = fields[fieldId];
 
-                        fieldMap.set(fieldId, field);
+                        fieldMap.set(field.id, field);
                     });
                 });
             });
 
-            return fieldMap;
+            return [fieldMap, subsectionMap];
         } catch (error) {
             console.error(error);
         }
 
-        return new Map<string | number, TFieldZod>();
+        return [null, null];
+    }
+
+    createSubsectionDependentObserverMap(subsectionMap: Map<TIdZod, TSubsectionZod>) {
+        if (!subsectionMap.size) {
+            throw Error('Field map is required');
+        }
+
+        const dependentObserverMap = new Map<TIdZod, BehaviorSubject<symbol>>();
+
+        subsectionMap.forEach((subsection) => {
+            dependentObserverMap.set(subsection.id, new BehaviorSubject<symbol>(Symbol()));
+        });
+
+        return dependentObserverMap;
     }
 
     // create observer for each field
@@ -153,6 +198,46 @@ export class Global2Service {
             // if (field.readonly) return;
 
             field?.disableDependsOn?.forEach((dependent) => {
+                const fields = dependentAndFieldMap.get(dependent) ?? [];
+                fields.push(field.id);
+                dependentAndFieldMap.set(dependent, fields);
+            });
+        });
+
+        return dependentAndFieldMap;
+    }
+
+    createFieldShowDependentAndFieldMap(fieldMap: Map<TIdZod, TFieldZod>) {
+        if (!fieldMap.size) {
+            throw Error('Field map is required');
+        }
+
+        const dependentAndFieldMap = new Map<TIdZod, TIdZod[]>();
+
+        fieldMap.forEach((field) => {
+            // if (field.readonly) return;
+
+            field?.showDependsOn?.forEach((dependent) => {
+                const fields = dependentAndFieldMap.get(dependent) ?? [];
+                fields.push(field.id);
+                dependentAndFieldMap.set(dependent, fields);
+            });
+        });
+
+        return dependentAndFieldMap;
+    }
+
+    createFieldHideDependentAndFieldMap(fieldMap: Map<TIdZod, TFieldZod>) {
+        if (!fieldMap.size) {
+            throw Error('Field map is required');
+        }
+
+        const dependentAndFieldMap = new Map<TIdZod, TIdZod[]>();
+
+        fieldMap.forEach((field) => {
+            // if (field.readonly) return;
+
+            field?.hideDependsOn?.forEach((dependent) => {
                 const fields = dependentAndFieldMap.get(dependent) ?? [];
                 fields.push(field.id);
                 dependentAndFieldMap.set(dependent, fields);
@@ -276,6 +361,10 @@ export class Global2Service {
         return this.#fieldDisableDependentObserverMap.get(fieldId);
     }
 
+    getCurrentSubsetionFieldShowHideObserver(subsectionId: TIdZod) {
+        return this.#subsectionFieldShowHideDependentObserverMap.get(subsectionId);
+    }
+
     // form value
     updateFormValue(value: unknown, fieldId: TIdZod, subsectionId: TIdZod, sectionId: TIdZod) {
         const fieldFormControl = this.getFieldFormRef(fieldId, subsectionId, sectionId);
@@ -356,6 +445,14 @@ export class Global2Service {
         return this.#fieldDisableDependentAndFieldMap.get(id);
     }
 
+    getFieldShowDependentFieldIds(id: TIdZod) {
+        return this.#fieldShowDependentAndFieldMap.get(id);
+    }
+
+    getFieldHideDependentFieldIds(id: TIdZod) {
+        return this.#fieldHideDependentAndFieldMap.get(id);
+    }
+
     triggerFieldValueDependentObserver(id: TIdZod) {
         this.#fieldValueDependentObserverMap.get(id)?.next(Symbol());
     }
@@ -364,9 +461,47 @@ export class Global2Service {
         this.#fieldDisableDependentObserverMap.get(id)?.next(Symbol());
     }
 
+    triggerSubsectionFieldShowHideDependentObserver(id: TIdZod) {
+        this.#subsectionFieldShowHideDependentObserverMap.get(id)?.next(Symbol());
+    }
+
     triggerAllFieldDisableObservers() {
         this.#fieldMap.forEach((field) => {
             this.triggerFieldDisableDependentObserver(field.id);
+        });
+    }
+
+    triggerShowHideObservers(fieldId: TIdZod) {
+        // get show & hide dependent field ids
+        const showDependencyIds = this.getFieldShowDependentFieldIds(fieldId) ?? [];
+        const hideDependencyIds = this.getFieldHideDependentFieldIds(fieldId) ?? [];
+
+        console.log('showDependencyIds -----', showDependencyIds);
+        console.log('hideDependencyIds -----', hideDependencyIds);
+
+        const fieldIdSet = new Set<TIdZod>([...showDependencyIds, ...hideDependencyIds]);
+
+        console.log('fieldIdSet --------', fieldIdSet);
+
+        // now loop through ids, and get subsection ids, from fieldMap.
+        const subsectionIdSet = new Set<TIdZod>();
+
+        fieldIdSet.forEach((fieldId) => {
+            console.log('this.#fieldMap ---------', this.#fieldMap);
+            const field = this.#fieldMap.get(fieldId);
+
+            console.log('field ---------', field);
+
+            if (!field) return;
+
+            subsectionIdSet.add(field.subsectionId);
+        });
+
+        console.log('subsectionIdSet ---- ', subsectionIdSet);
+
+        // trigger observers of subsections by id.
+        subsectionIdSet.forEach((subsectionId) => {
+            this.triggerSubsectionFieldShowHideDependentObserver(subsectionId);
         });
     }
 }
