@@ -208,6 +208,7 @@ export class AppComponent implements OnInit {
                                 // you can add your own id, because disable will not gonna trigger it;s
                                 // dependents again in 2nd iteration.
                                 // But donot do that, other wise it might happen, you will not gonna able to change
+                                readonly: true,
                             },
                             6: {
                                 id: 6,

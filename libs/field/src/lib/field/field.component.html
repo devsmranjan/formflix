@@ -16,4 +16,12 @@
     }
 } -->
 
-<formflix-textfield2 [field]="field" *ngIf="show()" />
+<div class="border p-3">
+    <label for="">{{ field.label }}</label>
+
+    @if (field.readonly) {
+        <p>{{ getValue(field.path) }}</p>
+    } @else {
+        <formflix-textfield2 [field]="field" />
+    }
+</div>

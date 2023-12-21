@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, Input, OnInit, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input, OnInit, inject } from '@angular/core';
 
-import { GlobalService, TFieldZod, getFromJson } from '@formflix/utils';
+import { Global2Service, TFieldZod, getFromJson } from '@formflix/utils';
 
 import { TextareaComponent, TextfieldComponent } from './containers';
 import { Textfield2Component } from './containers/textfield2/textfield2.component';
@@ -17,17 +17,13 @@ import { Textfield2Component } from './containers/textfield2/textfield2.componen
 export class FieldComponent implements OnInit {
     @Input({ required: true }) field!: TFieldZod;
 
-    #globalService = inject(GlobalService);
-
-    show = signal(false);
+    #global2Service = inject(Global2Service);
 
     getValue(path: string) {
-        return getFromJson(path, this.#globalService.source);
+        return getFromJson(path, this.#global2Service.getSource()());
     }
 
     ngOnInit(): void {
-        setTimeout(() => {
-            this.show.set(true);
-        }, 500);
+        console.log(this.field);
     }
 }
