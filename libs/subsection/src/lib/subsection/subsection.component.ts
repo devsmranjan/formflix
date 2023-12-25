@@ -23,10 +23,6 @@ export class SubsectionComponent implements OnInit, OnDestroy {
 
     destroy$ = new Subject<void>();
 
-    // getFields() {
-    //     return this.global2Service.getFields(this.subsection.id, this.subsection.sectionId);
-    // }
-
     ngOnInit(): void {
         this.handleFieldShowHideObserver();
     }
@@ -169,8 +165,6 @@ export class SubsectionComponent implements OnInit, OnDestroy {
 
     shouldBeVisible(field: TFieldZod) {
         let visible = true;
-
-        // hide will override show
 
         // show
         if (field.show !== undefined) {

@@ -1,5 +1,5 @@
 import { Injectable, signal } from '@angular/core';
-import { FormControl, FormGroup } from '@angular/forms';
+import { FormControl, FormGroup, Validators } from '@angular/forms';
 
 import { BehaviorSubject, Subject } from 'rxjs';
 
@@ -17,21 +17,25 @@ export class Global2Service {
 
     // field value
     #fieldValueDependentObserverMap = new Map<TIdZod, Subject<symbol>>();
-    #fieldValueDependentAndFieldMap = new Map<TIdZod, TIdZod[]>();
+    #fieldValueDependentAndFieldMap = new Map<TIdZod, Set<TIdZod>>();
 
     // field disable
     #fieldDisableDependentObserverMap = new Map<TIdZod, Subject<symbol>>();
-    #fieldDisableDependentAndFieldMap = new Map<TIdZod, TIdZod[]>();
+    #fieldDisableDependentAndFieldMap = new Map<TIdZod, Set<TIdZod>>();
+
+    // validators
+    #fieldValidatorDependentObserverMap = new Map<TIdZod, Subject<symbol>>();
+    #fieldValidatorDependentAndFieldMap = new Map<TIdZod, Set<TIdZod>>();
 
     // subsection
     #subsectionMap = new Map<string | number, TSubsectionZod>();
     #subsectionFieldShowHideDependentObserverMap = new Map<TIdZod, BehaviorSubject<symbol>>();
 
     // show
-    #fieldShowDependentAndFieldMap = new Map<TIdZod, TIdZod[]>();
+    #fieldShowDependentAndFieldMap = new Map<TIdZod, Set<TIdZod>>();
 
     // hide
-    #fieldHideDependentAndFieldMap = new Map<TIdZod, TIdZod[]>();
+    #fieldHideDependentAndFieldMap = new Map<TIdZod, Set<TIdZod>>();
 
     // source
 
@@ -69,14 +73,18 @@ export class Global2Service {
                 this.#subsectionMap = subsectionMap;
             }
 
+            // TODO: Manage all dependencies in one map of observables
             this.#fieldValueDependentObserverMap = this.createFieldDependentObserverMap(this.#fieldMap); // TODO: You should call this in a subsection component, so that when subsction is visible then only it will create (not create exactly, it should add or remove observables not replace) the observer
             this.#fieldDisableDependentObserverMap = this.createFieldDependentObserverMap(this.#fieldMap); // TODO: You should call this in a subsection component, so that when subsction is visible then only it will create (not create exactly, it should add or remove observables not replace) the observer
+            this.#fieldValidatorDependentObserverMap = this.createFieldDependentObserverMap(this.#fieldMap); // TODO: You should call this in a subsection component, so that when subsction is visible then only it will create (not create exactly, it should add or remove observables not replace) the observer
+
             this.#subsectionFieldShowHideDependentObserverMap = this.createSubsectionDependentObserverMap(
                 this.#subsectionMap,
             );
 
             this.#fieldValueDependentAndFieldMap = this.createFieldValueDependentAndFieldMap(this.#fieldMap);
             this.#fieldDisableDependentAndFieldMap = this.createFieldDisableDependentAndFieldMap(this.#fieldMap);
+            this.#fieldValidatorDependentAndFieldMap = this.createFieldValidatorDependentAndFieldMap(this.#fieldMap);
             this.#fieldShowDependentAndFieldMap = this.createFieldShowDependentAndFieldMap(this.#fieldMap);
             this.#fieldHideDependentAndFieldMap = this.createFieldHideDependentAndFieldMap(this.#fieldMap);
 
@@ -85,8 +93,10 @@ export class Global2Service {
             console.log('Global 2 fieldMap', this.#fieldMap);
             console.log('Global 2 fieldDependentObserverMap', this.#fieldValueDependentObserverMap);
             console.log('Global 2 fieldDisableDependentObserverMap', this.#fieldDisableDependentObserverMap);
+            console.log('Global 2 fieldValidatorDependentObserverMap', this.#fieldValidatorDependentObserverMap);
             console.log('Global 2 fieldValueDependentAndFieldMap', this.#fieldValueDependentAndFieldMap);
             console.log('Global 2 fieldDisableDependentAndFieldMap', this.#fieldDisableDependentAndFieldMap);
+            console.log('Global 2 fieldValidatorDependentAndFieldMap', this.#fieldValidatorDependentAndFieldMap);
             console.log('Global 2 fieldShowDependentAndFieldMap', this.#fieldShowDependentAndFieldMap);
             console.log('Global 2 fieldHideDependentAndFieldMap', this.#fieldHideDependentAndFieldMap);
         } catch (error) {
@@ -165,21 +175,30 @@ export class Global2Service {
         return dependentObserverMap;
     }
 
+    updateDependentAndFieldMap(dependentAndFieldMap: Map<TIdZod, Set<TIdZod>>, dependent: TIdZod, field: TFieldZod) {
+        const fields = dependentAndFieldMap.get(dependent) ?? new Set<TIdZod>();
+
+        console.log('dependent ids -- 2', field.name, fields);
+
+        if (fields === undefined) return;
+
+        fields.add(field.id);
+        dependentAndFieldMap.set(dependent, fields);
+    }
+
     // create dependent & it's fields map, for field value
     createFieldValueDependentAndFieldMap(fieldMap: Map<TIdZod, TFieldZod>) {
         if (!fieldMap.size) {
             throw Error('Field map is required');
         }
 
-        const dependentAndFieldMap = new Map<TIdZod, TIdZod[]>();
+        const dependentAndFieldMap = new Map<TIdZod, Set<TIdZod>>();
 
         fieldMap.forEach((field) => {
             // if (field.readonly) return;
 
             field?.valueDependsOn?.forEach((dependent) => {
-                const fields = dependentAndFieldMap.get(dependent) ?? [];
-                fields.push(field.id);
-                dependentAndFieldMap.set(dependent, fields);
+                this.updateDependentAndFieldMap(dependentAndFieldMap, dependent, field);
             });
         });
 
@@ -192,15 +211,36 @@ export class Global2Service {
             throw Error('Field map is required');
         }
 
-        const dependentAndFieldMap = new Map<TIdZod, TIdZod[]>();
+        const dependentAndFieldMap = new Map<TIdZod, Set<TIdZod>>();
 
         fieldMap.forEach((field) => {
             // if (field.readonly) return;
 
             field?.disableDependsOn?.forEach((dependent) => {
-                const fields = dependentAndFieldMap.get(dependent) ?? [];
-                fields.push(field.id);
-                dependentAndFieldMap.set(dependent, fields);
+                this.updateDependentAndFieldMap(dependentAndFieldMap, dependent, field);
+            });
+        });
+
+        return dependentAndFieldMap;
+    }
+
+    // validator
+    createFieldValidatorDependentAndFieldMap(fieldMap: Map<TIdZod, TFieldZod>) {
+        if (!fieldMap.size) {
+            throw Error('Field map is required');
+        }
+
+        const dependentAndFieldMap = new Map<TIdZod, Set<TIdZod>>();
+
+        fieldMap.forEach((field) => {
+            // if (field.readonly) return;
+
+            field?.validatorsDependsOn?.forEach((dependent) => {
+                this.updateDependentAndFieldMap(dependentAndFieldMap, dependent, field);
+            });
+
+            field?.valueDependsOn?.forEach((dependent) => {
+                this.updateDependentAndFieldMap(dependentAndFieldMap, dependent, field);
             });
         });
 
@@ -212,15 +252,13 @@ export class Global2Service {
             throw Error('Field map is required');
         }
 
-        const dependentAndFieldMap = new Map<TIdZod, TIdZod[]>();
+        const dependentAndFieldMap = new Map<TIdZod, Set<TIdZod>>();
 
         fieldMap.forEach((field) => {
             // if (field.readonly) return;
 
             field?.showDependsOn?.forEach((dependent) => {
-                const fields = dependentAndFieldMap.get(dependent) ?? [];
-                fields.push(field.id);
-                dependentAndFieldMap.set(dependent, fields);
+                this.updateDependentAndFieldMap(dependentAndFieldMap, dependent, field);
             });
         });
 
@@ -232,15 +270,13 @@ export class Global2Service {
             throw Error('Field map is required');
         }
 
-        const dependentAndFieldMap = new Map<TIdZod, TIdZod[]>();
+        const dependentAndFieldMap = new Map<TIdZod, Set<TIdZod>>();
 
         fieldMap.forEach((field) => {
             // if (field.readonly) return;
 
             field?.hideDependsOn?.forEach((dependent) => {
-                const fields = dependentAndFieldMap.get(dependent) ?? [];
-                fields.push(field.id);
-                dependentAndFieldMap.set(dependent, fields);
+                this.updateDependentAndFieldMap(dependentAndFieldMap, dependent, field);
             });
         });
 
@@ -361,6 +397,10 @@ export class Global2Service {
         return this.#fieldDisableDependentObserverMap.get(fieldId);
     }
 
+    getCurrentFieldValidatorObserver(fieldId: TIdZod) {
+        return this.#fieldValidatorDependentObserverMap.get(fieldId);
+    }
+
     getCurrentSubsetionFieldShowHideObserver(subsectionId: TIdZod) {
         return this.#subsectionFieldShowHideDependentObserverMap.get(subsectionId);
     }
@@ -437,12 +477,98 @@ export class Global2Service {
 
     // end: form disable ----------------
 
+    // start: validator -------------------
+
+    updateRequiredValidator(fieldId: TIdZod, subsectionId: TIdZod, sectionId: TIdZod, remove = false) {
+        const formControl = this.getFieldFormRef(fieldId, subsectionId, sectionId);
+
+        if (!formControl) return;
+
+        if (!remove) {
+            formControl.addValidators(Validators.required);
+        } else {
+            formControl.removeValidators(Validators.required);
+        }
+    }
+
+    updatePatternValidator(
+        value: string | RegExp,
+        fieldId: TIdZod,
+        subsectionId: TIdZod,
+        sectionId: TIdZod,
+        remove = false,
+    ) {
+        const formControl = this.getFieldFormRef(fieldId, subsectionId, sectionId);
+
+        if (!formControl) return;
+
+        if (!remove) {
+            formControl.addValidators(Validators.pattern(value));
+        } else {
+            formControl.removeValidators(Validators.pattern(value));
+        }
+    }
+
+    updateMaxValidator(value: number, fieldId: TIdZod, subsectionId: TIdZod, sectionId: TIdZod, remove = false) {
+        const formControl = this.getFieldFormRef(fieldId, subsectionId, sectionId);
+
+        if (!formControl) return;
+
+        if (!remove) {
+            formControl.addValidators(Validators.max(value));
+        } else {
+            formControl.removeValidators(Validators.max(value));
+        }
+    }
+
+    updateMinValidator(value: number, fieldId: TIdZod, subsectionId: TIdZod, sectionId: TIdZod, remove = false) {
+        const formControl = this.getFieldFormRef(fieldId, subsectionId, sectionId);
+
+        if (!formControl) return;
+
+        if (!remove) {
+            formControl.addValidators(Validators.min(value));
+        } else {
+            formControl.removeValidators(Validators.min(value));
+        }
+    }
+
+    updateMaxLengthValidator(value: number, fieldId: TIdZod, subsectionId: TIdZod, sectionId: TIdZod, remove = false) {
+        const formControl = this.getFieldFormRef(fieldId, subsectionId, sectionId);
+
+        if (!formControl) return;
+
+        if (!remove) {
+            formControl.addValidators(Validators.maxLength(value));
+        } else {
+            formControl.removeValidators(Validators.maxLength(value));
+        }
+    }
+
+    updateMinLengthValidator(value: number, fieldId: TIdZod, subsectionId: TIdZod, sectionId: TIdZod, remove = false) {
+        const formControl = this.getFieldFormRef(fieldId, subsectionId, sectionId);
+
+        if (!formControl) return;
+
+        if (!remove) {
+            formControl.addValidators(Validators.minLength(value));
+        } else {
+            formControl.removeValidators(Validators.minLength(value));
+        }
+    }
+
+    // end: validator ------------------------
+
     getFieldValueDependentFieldIds(id: TIdZod) {
         return this.#fieldValueDependentAndFieldMap.get(id);
     }
 
     getFieldDisableDependentFieldIds(id: TIdZod) {
         return this.#fieldDisableDependentAndFieldMap.get(id);
+    }
+
+    getFieldValidatorsDependentFieldIds(id: TIdZod) {
+        return this.#fieldValidatorDependentAndFieldMap.get(id);
     }
 
     getFieldShowDependentFieldIds(id: TIdZod) {
@@ -461,6 +587,10 @@ export class Global2Service {
         this.#fieldDisableDependentObserverMap.get(id)?.next(Symbol());
     }
 
+    triggerFieldValidatorDependentObserver(id: TIdZod) {
+        this.#fieldValidatorDependentObserverMap.get(id)?.next(Symbol());
+    }
+
     triggerSubsectionFieldShowHideDependentObserver(id: TIdZod) {
         this.#subsectionFieldShowHideDependentObserverMap.get(id)?.next(Symbol());
     }
@@ -471,7 +601,20 @@ export class Global2Service {
         });
     }
 
+    triggerAllFieldValidatorObservers() {
+        this.#fieldMap.forEach((field) => {
+            this.triggerFieldValidatorDependentObserver(field.id);
+        });
+
+        setTimeout(() => {
+            console.log('after validator trigger', this.#form);
+        }, 1000);
+    }
+
     triggerShowHideObservers(fieldId: TIdZod) {
+        // TODO: Disable on hide, when show, run disable conditions
+        // TODO: remove validators, add when show
+
         // get show & hide dependent field ids
         const showDependencyIds = this.getFieldShowDependentFieldIds(fieldId) ?? [];
         const hideDependencyIds = this.getFieldHideDependentFieldIds(fieldId) ?? [];

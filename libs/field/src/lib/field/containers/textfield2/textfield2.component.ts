@@ -1,12 +1,13 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, Input, OnDestroy, OnInit, inject } from '@angular/core';
-import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit, inject } from '@angular/core';
+import { FormControl, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 
 import {
     Global2Service,
     TConditionZod,
     TDataMapZod,
     TFieldZod,
+    TValidatorZod,
     getFromJson,
     promiseWait,
     setToJson,
@@ -17,7 +18,7 @@ import { Subject, takeUntil } from 'rxjs';
 @Component({
     selector: 'formflix-textfield2',
     standalone: true,
-    imports: [CommonModule, ReactiveFormsModule],
+    imports: [CommonModule, ReactiveFormsModule, FormsModule],
     templateUrl: './textfield2.component.html',
     styleUrl: './textfield2.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
@@ -26,10 +27,12 @@ export class Textfield2Component implements OnInit, OnDestroy {
     @Input({ required: true }) field!: TFieldZod;
 
     #global2Service = inject(Global2Service);
+    #changeDetectorRef = inject(ChangeDetectorRef);
 
     formControl!: FormControl;
     currentValueTrigger$!: Subject<symbol> | undefined;
     currentDisableTrigger$!: Subject<symbol> | undefined;
+    currentValidatorTrigger$!: Subject<symbol> | undefined;
 
     destroy$ = new Subject<void>();
 
@@ -39,11 +42,13 @@ export class Textfield2Component implements OnInit, OnDestroy {
         this.formControl = this.#global2Service.getFieldFormRef(id, subsectionId, sectionId);
         this.currentValueTrigger$ = this.#global2Service.getCurrentFieldValueObserver(id);
         this.currentDisableTrigger$ = this.#global2Service.getCurrentFieldDisableObserver(id);
+        this.currentValidatorTrigger$ = this.#global2Service.getCurrentFieldValidatorObserver(id);
 
         this.handleCurrentObserver();
 
         // trigger disable
         this.#global2Service.triggerAllFieldDisableObservers();
+        this.#global2Service.triggerAllFieldValidatorObservers();
     }
 
     handleCurrentObserver() {
@@ -70,6 +75,111 @@ export class Textfield2Component implements OnInit, OnDestroy {
                 this.field.sectionId,
             );
         });
+
+        this.currentValidatorTrigger$?.pipe(takeUntil(this.destroy$)).subscribe(() => {
+            const validators = this.field?.validators ?? [];
+
+            validators.forEach((validator) => {
+                const shouldAddValidator = this.shouldAddValidator(validator);
+
+                console.log('shouldAddValidator', this.field.name, shouldAddValidator, validator.type);
+
+                if (typeof shouldAddValidator === 'boolean' && shouldAddValidator) {
+                    this.handleValidators(validator);
+
+                    console.log(
+                        'shouldAddValidator 2',
+                        this.field.name,
+                        this.formControl.hasValidator(Validators.required),
+                    );
+                } else {
+                    this.handleValidators(validator, true);
+                }
+            });
+
+            this.formControl.updateValueAndValidity();
+            this.#changeDetectorRef.detectChanges();
+        });
+    }
+
+    handleValidators(validator: TValidatorZod, remove = false) {
+        const type = validator.type;
+
+        const value = validator.value;
+
+        switch (type) {
+            case 'REQUIRED':
+                this.#global2Service.updateRequiredValidator(
+                    this.field.id,
+                    this.field.subsectionId,
+                    this.field.sectionId,
+                    remove,
+                );
+                break;
+
+            case 'PATTERN':
+                if (value && (typeof value === 'string' || value instanceof RegExp)) {
+                    this.#global2Service.updatePatternValidator(
+                        value,
+                        this.field.id,
+                        this.field.subsectionId,
+                        this.field.sectionId,
+                        remove,
+                    );
+                }
+                break;
+
+            case 'MIN':
+                if (value && typeof value === 'number') {
+                    this.#global2Service.updateMinValidator(
+                        value,
+                        this.field.id,
+                        this.field.subsectionId,
+                        this.field.sectionId,
+                        remove,
+                    );
+                }
+                break;
+
+            case 'MAX':
+                if (value && typeof value === 'number') {
+                    this.#global2Service.updateMaxValidator(
+                        value,
+                        this.field.id,
+                        this.field.subsectionId,
+                        this.field.sectionId,
+                        remove,
+                    );
+                }
+                break;
+
+            case 'MIN_LENGTH':
+                if (value && typeof value === 'number') {
+                    this.#global2Service.updateMinLengthValidator(
+                        value,
+                        this.field.id,
+                        this.field.subsectionId,
+                        this.field.sectionId,
+                        remove,
+                    );
+                }
+                break;
+
+            case 'MAX_LENGTH':
+                if (value && typeof value === 'number') {
+                    this.#global2Service.updateMaxLengthValidator(
+                        value,
+                        this.field.id,
+                        this.field.subsectionId,
+                        this.field.sectionId,
+                        remove,
+                    );
+                }
+                break;
+
+            default:
+                break;
+        }
     }
 
     updateSource(value: unknown) {
@@ -82,12 +192,9 @@ export class Textfield2Component implements OnInit, OnDestroy {
         // TODO: Convert to number if field type is number
         this.updateSource(value);
         this.triggerDependencies();
-    }
 
-    // handleFormDisable(value: boolean) {
-    //     this.#global2Service.disableFieldForm(value, this.field.id, this.field.subsectionId, this.field.sectionId)
-    //     // this.triggerFieldDisableDependentObservers()
-    // }
+        console.log('this.formControl', this.field.name, this.formControl);
+    }
 
     handleFormInput(e: Event) {
         const value = (e.target as HTMLInputElement).value;
@@ -114,6 +221,12 @@ export class Textfield2Component implements OnInit, OnDestroy {
         }
 
         return this.getConditionResult(disable);
+    }
+
+    shouldAddValidator(validator: TValidatorZod) {
+        if (!validator?.condition) return true;
+
+        return this.getConditionResult(validator?.condition);
     }
 
     // -------- start: calculation ------------------
@@ -221,22 +334,32 @@ export class Textfield2Component implements OnInit, OnDestroy {
     // ---------------------- end: calculation -------------
 
     triggerFieldValueDependentObservers() {
-        const dependentIds = this.#global2Service.getFieldValueDependentFieldIds(this.field.id) ?? [];
+        const dependentIds = this.#global2Service.getFieldValueDependentFieldIds(this.field.id);
 
         console.log('dependent ids', dependentIds);
 
-        dependentIds.forEach((dependentId) => {
+        dependentIds?.forEach((dependentId) => {
             this.#global2Service.triggerFieldValueDependentObserver(dependentId);
         });
     }
 
     triggerFieldDisableDependentObservers() {
-        const dependentIds = this.#global2Service.getFieldDisableDependentFieldIds(this.field.id) ?? [];
+        const dependentIds = this.#global2Service.getFieldDisableDependentFieldIds(this.field.id);
 
         console.log('dependent ids', dependentIds);
 
-        dependentIds.forEach((dependentId) => {
+        dependentIds?.forEach((dependentId) => {
             this.#global2Service.triggerFieldDisableDependentObserver(dependentId);
+        });
+    }
+
+    triggerFieldValidatorsDependentObservers() {
+        const dependentIds = this.#global2Service.getFieldValidatorsDependentFieldIds(this.field.id);
+
+        console.log('dependent ids', dependentIds);
+
+        dependentIds?.forEach((dependentId) => {
+            this.#global2Service.triggerFieldValidatorDependentObserver(dependentId);
         });
     }
 
@@ -247,7 +370,78 @@ export class Textfield2Component implements OnInit, OnDestroy {
         await promiseWait(200);
 
         this.triggerFieldDisableDependentObservers();
+
         this.triggerFieldValueDependentObservers();
+        this.triggerFieldValidatorsDependentObservers();
+    }
+
+    // validators
+    hasRequiredValidator() {
+        return this.formControl.hasValidator(Validators.required);
+    }
+
+    rerender() {
+        console.log('Rerender field', this.field.name, this.formControl.errors);
+    }
+
+    getErrorMessages() {
+        const errors = this.formControl.errors;
+
+        if (errors === null) return;
+
+        const errorMessages: string[] = [];
+
+        Object.keys(errors).forEach((key) => {
+            const errorMessage = this.errorMessage(key);
+
+            if (errorMessage !== null && errorMessage !== undefined) {
+                errorMessages.push(errorMessage);
+            }
+        });
+
+        return errorMessages;
+    }
+
+    errorMessage(key: string) {
+        switch (key) {
+            case 'required':
+                return this.requiredErrorMessage();
+
+            case 'pattern':
+                return this.patternErrorMessage();
+
+            case 'min':
+                return this.minErrorMessage();
+
+            default:
+                return null;
+        }
+    }
+
+    requiredErrorMessage() {
+        const validator = this.field.validators?.find((validator) => validator.type === 'REQUIRED');
+
+        return validator?.message;
+    }
+
+    patternErrorMessage() {
+        const patternFromValidator = this.formControl.errors?.['pattern']?.requiredPattern;
+
+        const validator = this.field.validators?.find(
+            (validator) => validator.type === 'PATTERN' && validator.value === patternFromValidator,
+        );
+
+        return validator?.message;
+    }
+
+    minErrorMessage() {
+        const minFromValidator = this.formControl.errors?.['min']?.min;
+
+        const validator = this.field.validators?.find(
+            (validator) => validator.type === 'MIN' && validator.value === minFromValidator,
+        );
+
+        return validator?.message;
     }
 
     ngOnDestroy(): void {

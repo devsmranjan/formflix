@@ -6,7 +6,8 @@
         "@angular/core": "^17.0.0",
         "@nx/angular": "17.2.3",
         "@formflix/field": "*",
-        "@formflix/utils": "*"
+        "@formflix/utils": "*",
+        "rxjs": "~7.8.0"
     },
     "dependencies": {},
     "sideEffects": false

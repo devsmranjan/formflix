@@ -208,7 +208,7 @@ export class AppComponent implements OnInit {
                                 // you can add your own id, because disable will not gonna trigger it;s
                                 // dependents again in 2nd iteration.
                                 // But donot do that, other wise it might happen, you will not gonna able to change
-                                readonly: true,
+                                // readonly: true,
                             },
                             6: {
                                 id: 6,
@@ -249,9 +249,34 @@ export class AppComponent implements OnInit {
                                             query: '$.data.field_e',
                                         },
                                     },
-                                    expression: '{FIELD_E} == 100',
+                                    expression: '{FIELD_E} === 100',
                                 },
-                                showDependsOn: [8],
+                                hideDependsOn: [8],
+                                validators: [
+                                    {
+                                        type: 'REQUIRED',
+                                        message: 'Field D is required',
+                                        condition: {
+                                            dataMap: {
+                                                FIELD_E: {
+                                                    query: '$.data.field_e',
+                                                },
+                                            },
+                                            expression: '{FIELD_E} === 200',
+                                        },
+                                    },
+                                    {
+                                        type: 'PATTERN',
+                                        value: '^.{6}$|^.{8}$',
+                                        message: 'Field D can have only 6 or 8 chracters',
+                                    },
+                                    {
+                                        type: 'MIN',
+                                        value: 100001,
+                                        message: 'Field D should have minimum 100001',
+                                    },
+                                ],
+                                validatorsDependsOn: [8],
                             },
                             8: {
                                 id: 8,
@@ -281,7 +306,7 @@ export class AppComponent implements OnInit {
             field_a: 2,
             field_b: 5,
             field_c: 100,
-            field_d: 5,
+            field_d: undefined,
             field_e: 4,
             a: {
                 price: 1,

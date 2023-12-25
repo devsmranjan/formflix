@@ -1,4 +1,4 @@
-import { array, boolean, number, object, record, string, union, z } from 'zod';
+import { array, boolean, number, object, record, string, union, unknown, z } from 'zod';
 
 export const IdSchema = union([string(), number()]);
 
@@ -13,6 +13,13 @@ export const DataMapSchema = record(
 export const ConditionSchema = object({
     dataMap: DataMapSchema,
     expression: string(),
+});
+
+export const ValidatorSchema = object({
+    type: z.enum(['REQUIRED', 'PATTERN', 'MIN', 'MAX', 'MIN_LENGTH', 'MAX_LENGTH']),
+    value: unknown().optional(), // for pattern
+    condition: ConditionSchema.optional(),
+    message: string(),
 });
 
 export const FieldSchema = object({
@@ -31,6 +38,8 @@ export const FieldSchema = object({
     showDependsOn: array(IdSchema).optional(),
     hide: union([boolean(), ConditionSchema]).optional(),
     hideDependsOn: array(IdSchema).optional(),
+    validators: array(ValidatorSchema).optional(),
+    validatorsDependsOn: array(IdSchema).optional(),
 });
 
 export const FieldsSchema = record(IdSchema, FieldSchema);
@@ -67,3 +76,4 @@ export type TFieldsZod = z.infer<typeof FieldsSchema>;
 export type TFieldZod = z.infer<typeof FieldSchema>;
 export type TConditionZod = z.infer<typeof ConditionSchema>;
 export type TDataMapZod = z.infer<typeof DataMapSchema>;
+export type TValidatorZod = z.infer<typeof ValidatorSchema>;
