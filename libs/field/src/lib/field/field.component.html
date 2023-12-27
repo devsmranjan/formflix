@@ -1,26 +1,19 @@
-<!-- @if (field.readonly) {
+@if (field.readonly) {
+    <label for="">{{ field.label }}</label>
+    <br />
     <p>{{ getValue(field.path) }}</p>
 } @else {
     @switch (field.tag) {
         @case ('input') {
-            <formflix-textfield2 [field]="field" />
+            <formflix-textfield [field]="field" />
         }
 
         @case ('textarea') {
-            <formflix-textarea [field]="field" />
+            <!-- <formflix-textarea [field]="field" /> -->
         }
 
         @default {
             <p>Not able map with any field</p>
         }
     }
-} -->
-
-<div class="border p-3">
-    @if (field.readonly) {
-        <label for="">{{ field.label }}</label>
-        <p>{{ getValue(field.path) }}</p>
-    } @else {
-        <formflix-textfield [field]="field" />
-    }
-</div>
+}

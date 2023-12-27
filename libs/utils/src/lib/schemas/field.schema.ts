@@ -27,11 +27,12 @@ export const FieldBaseSchema = object({
     tag: FieldTagSchema, // TODO: Need to handle
     type: z.enum(['text', 'number']).optional(), // TODO: Need to handle
     defaultValue: unknown().optional(), // TODO: Need to handle
+    hint: string().optional(),
     value: ConditionSchema.optional(),
     valueDependsOn: array(IdSchema).optional(),
     disable: union([boolean(), ConditionSchema]).optional(),
     disableDependsOn: array(IdSchema).optional(),
-    // readonly: boolean().optional(), // if readonly, then cannot change value direct or indirectly
+    readonly: boolean().optional(), // if readonly, then cannot change value direct or indirectly
     show: union([boolean(), ConditionSchema]).optional(), // TODO: test with readonly field
     showDependsOn: array(IdSchema).optional(),
     hide: union([boolean(), ConditionSchema]).optional(),

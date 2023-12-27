@@ -76,15 +76,15 @@ export class AppComponent implements OnInit {
                                 tag: 'input',
                                 type: 'number',
                                 path: '$.data.field_b',
-                                value: {
-                                    dataMap: {
-                                        FIELD_C: {
-                                            query: '$.data.field_c',
-                                        },
-                                    },
-                                    expression: '{FIELD_C} * 2',
-                                },
-                                valueDependsOn: [6],
+                                // value: {
+                                //     dataMap: {
+                                //         FIELD_C: {
+                                //             query: '$.data.field_c',
+                                //         },
+                                //     },
+                                //     expression: '{FIELD_C} * 2',
+                                // },
+                                // valueDependsOn: [6],
                                 // disable: {
                                 //     dataMap: {
                                 //         FIELD_B: {
@@ -96,7 +96,7 @@ export class AppComponent implements OnInit {
                                 // disableDependsOn: [5],
                                 // you can add your own id, because disable will not gonna trigger it;s
                                 // dependents again in 2nd iteration.
-                                // readonly: true,
+                                readonly: true,
                             },
                             6: {
                                 id: 6,
@@ -126,6 +126,7 @@ export class AppComponent implements OnInit {
                                 tag: 'input',
                                 type: 'number',
                                 path: '$.data.field_d',
+                                hint: 'field d hint',
                                 value: {
                                     dataMap: {
                                         FIELD_E: {

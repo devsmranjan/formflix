@@ -6,7 +6,7 @@ import {
     GlobalService,
     TCondition,
     TDataMap,
-    TField,
+    TInputFieldReadAndWrite,
     TValidator,
     getFromJson,
     promiseWait,
@@ -15,16 +15,18 @@ import {
 
 import { Subject, takeUntil } from 'rxjs';
 
+import { BottomLabelComponent, TopLabelComponent } from '../../ui';
+
 @Component({
     selector: 'formflix-textfield',
     standalone: true,
-    imports: [CommonModule, ReactiveFormsModule, FormsModule],
+    imports: [CommonModule, ReactiveFormsModule, FormsModule, TopLabelComponent, BottomLabelComponent],
     templateUrl: './textfield.component.html',
     styleUrl: './textfield.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TextfieldComponent implements OnInit, OnDestroy {
-    @Input({ required: true }) field!: TField;
+    @Input({ required: true }) field!: TInputFieldReadAndWrite;
 
     #globalService = inject(GlobalService);
     #changeDetectorRef = inject(ChangeDetectorRef);
@@ -384,10 +386,6 @@ export class TextfieldComponent implements OnInit, OnDestroy {
     // validators
     hasRequiredValidator() {
         return this.formControl.hasValidator(Validators.required);
-    }
-
-    rerender() {
-        console.log('Rerender field', this.field.name, this.formControl.errors);
     }
 
     getErrorMessages() {
