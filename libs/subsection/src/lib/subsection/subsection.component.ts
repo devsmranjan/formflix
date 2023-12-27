@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, Input, OnDestroy, OnInit, inject, signal } from '@angular/core';
 
 import { FieldComponent } from '@formflix/field';
-import { Global2Service, TConditionZod, TDataMapZod, TFieldZod, TSubsectionZod, getFromJson } from '@formflix/utils';
+import { GlobalService, TCondition, TDataMap, TField, TSubsection, getFromJson } from '@formflix/utils';
 
 import { Subject, takeUntil } from 'rxjs';
 
@@ -15,11 +15,11 @@ import { Subject, takeUntil } from 'rxjs';
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SubsectionComponent implements OnInit, OnDestroy {
-    global2Service = inject(Global2Service);
+    globalService = inject(GlobalService);
 
-    @Input({ required: true }) subsection!: TSubsectionZod;
+    @Input({ required: true }) subsection!: TSubsection;
 
-    fields = signal<TFieldZod[]>([]);
+    fields = signal<TField[]>([]);
 
     destroy$ = new Subject<void>();
 
@@ -30,7 +30,7 @@ export class SubsectionComponent implements OnInit, OnDestroy {
     // -------- start: calculation ------------------
 
     // use functions to calculate
-    calculateWithFn(dataMap: TDataMapZod, key: string, currentValue: unknown) {
+    calculateWithFn(dataMap: TDataMap, key: string, currentValue: unknown) {
         const fn = dataMap[key]?.fn;
 
         if (!fn) return currentValue;
@@ -67,13 +67,13 @@ export class SubsectionComponent implements OnInit, OnDestroy {
     }
 
     // create value map for expression from dataMap
-    getCalculateExpressionValueMap(keys: string[], dataMap: TDataMapZod) {
+    getCalculateExpressionValueMap(keys: string[], dataMap: TDataMap) {
         const expressionValueMap: Record<string, unknown> = {};
 
         for (const key of keys) {
             const query = dataMap[key]?.query;
 
-            const value = getFromJson(query, this.global2Service.getSource()());
+            const value = getFromJson(query, this.globalService.getSource()());
 
             if (value === null || value === undefined || value === '') {
                 return;
@@ -103,7 +103,7 @@ export class SubsectionComponent implements OnInit, OnDestroy {
     }
 
     // get result from condition
-    getConditionResult(condition: TConditionZod): unknown {
+    getConditionResult(condition: TCondition): unknown {
         const { dataMap, expression } = condition;
 
         const expressionKeys = Object.keys(dataMap);
@@ -131,7 +131,7 @@ export class SubsectionComponent implements OnInit, OnDestroy {
 
     // ---------------------- end: calculation -------------
 
-    shouldShowField(field: TFieldZod) {
+    shouldShowField(field: TField) {
         const show = field?.show;
 
         if (show === undefined) return true;
@@ -147,7 +147,7 @@ export class SubsectionComponent implements OnInit, OnDestroy {
         return result === undefined ? false : result;
     }
 
-    shouldHideField(field: TFieldZod) {
+    shouldHideField(field: TField) {
         const hide = field?.hide;
 
         if (hide === undefined) return false;
@@ -163,7 +163,7 @@ export class SubsectionComponent implements OnInit, OnDestroy {
         return result === undefined ? false : result;
     }
 
-    shouldBeVisible(field: TFieldZod) {
+    shouldBeVisible(field: TField) {
         let visible = true;
 
         // show
@@ -192,7 +192,7 @@ export class SubsectionComponent implements OnInit, OnDestroy {
     }
 
     handleFields() {
-        let fields = this.global2Service.getFields(this.subsection.id, this.subsection.sectionId);
+        let fields = this.globalService.getFields(this.subsection.id, this.subsection.sectionId);
 
         console.log('fields ------', fields);
 
@@ -200,7 +200,7 @@ export class SubsectionComponent implements OnInit, OnDestroy {
             const shouldVisible = this.shouldBeVisible(field);
 
             if (shouldVisible) {
-                this.global2Service.triggerFieldDisableDependentObserver(field.id);
+                this.globalService.triggerFieldDisableDependentObserver(field.id);
             }
 
             return shouldVisible;
@@ -212,7 +212,7 @@ export class SubsectionComponent implements OnInit, OnDestroy {
     }
 
     handleFieldShowHideObserver() {
-        const current$ = this.global2Service.getCurrentSubsetionFieldShowHideObserver(this.subsection.id);
+        const current$ = this.globalService.getCurrentSubsetionFieldShowHideObserver(this.subsection.id);
 
         current$?.pipe(takeUntil(this.destroy$)).subscribe(() => {
             console.log('Current ---- ', this.subsection.id);

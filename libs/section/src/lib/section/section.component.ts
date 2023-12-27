@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, Input, inject } from '@angular/core';
 
 import { SubsectionComponent } from '@formflix/subsection';
-import { Global2Service, TSectionZod } from '@formflix/utils';
+import { GlobalService, TSection } from '@formflix/utils';
 
 @Component({
     selector: 'formflix-section',
@@ -13,9 +13,9 @@ import { Global2Service, TSectionZod } from '@formflix/utils';
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SectionComponent {
-    #globalService = inject(Global2Service);
+    #globalService = inject(GlobalService);
 
-    @Input({ required: true }) section!: TSectionZod;
+    @Input({ required: true }) section!: TSection;
 
     getSubsections() {
         return this.#globalService.getSubsections(this.section.id);

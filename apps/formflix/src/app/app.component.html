@@ -1,4 +1,4 @@
-@if (global2Service.getSource() && global2Service.getTemplate()()) {
+@if (globalService.getSource() && globalService.getTemplate()()) {
     <section>
         @for (section of getSections(); track section.id) {
             <formflix-section [section]="section" />

@@ -1,142 +1,213 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, Input, OnDestroy, OnInit, inject, signal } from '@angular/core';
-import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit, inject } from '@angular/core';
+import { FormControl, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 
 import {
     GlobalService,
     TCondition,
     TDataMap,
-    TInputFieldReadAndWrite,
+    TField,
+    TValidator,
     getFromJson,
     promiseWait,
     setToJson,
 } from '@formflix/utils';
 
-import { Subject, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs';
-
-import { BottomLabelComponent, TopLabelComponent } from '../../ui';
+import { Subject, takeUntil } from 'rxjs';
 
 @Component({
     selector: 'formflix-textfield',
     standalone: true,
-    imports: [CommonModule, BottomLabelComponent, TopLabelComponent, ReactiveFormsModule],
+    imports: [CommonModule, ReactiveFormsModule, FormsModule],
     templateUrl: './textfield.component.html',
     styleUrl: './textfield.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TextfieldComponent implements OnInit, OnDestroy {
-    @Input({ required: true }) field!: TInputFieldReadAndWrite;
+    @Input({ required: true }) field!: TField;
 
     #globalService = inject(GlobalService);
+    #changeDetectorRef = inject(ChangeDetectorRef);
 
-    formControl = new FormControl();
-    error = signal<string | null>(null);
-
-    current$!: Subject<symbol> | undefined; // current observable
+    formControl!: FormControl;
+    currentValueTrigger$!: Subject<symbol> | undefined;
+    currentDisableTrigger$!: Subject<symbol> | undefined;
+    currentValidatorTrigger$!: Subject<symbol> | undefined;
 
     destroy$ = new Subject<void>();
 
-    async ngOnInit() {
-        console.log('text field component, field:', this.field);
+    ngOnInit(): void {
+        const { id, subsectionId, sectionId } = this.field;
 
-        // set initial value
-        this.setInitalValue();
+        this.formControl = this.#globalService.getFieldFormRef(id, subsectionId, sectionId);
+        this.currentValueTrigger$ = this.#globalService.getCurrentFieldValueObserver(id);
+        this.currentDisableTrigger$ = this.#globalService.getCurrentFieldDisableObserver(id);
+        this.currentValidatorTrigger$ = this.#globalService.getCurrentFieldValidatorObserver(id);
 
-        // disable
-        await promiseWait(100);
-        this.handleDisable();
+        this.handleCurrentObserver();
 
-        // trigger dependents having initial calculation flag
-        this.triggerInitialDependentFields();
-
-        // handle form value change
-        this.handleFormValueChange();
-
-        // assign current observer
-        this.current$ = this.#globalService.getDependentObserver(this.field.id);
-
-        this.handleChangesOnDependentChanges();
+        // trigger disable
+        this.#globalService.triggerAllFieldDisableObservers();
+        this.#globalService.triggerAllFieldValidatorObservers();
     }
 
-    // set initial value
-    setInitalValue() {
-        const { source } = this.#globalService;
-
-        console.log({ source });
-
-        if (!source) return;
-
-        let value = getFromJson(this.field.path, source);
-
-        if (value === undefined) {
-            // handle default value
-            value = this.field.defaultValue !== undefined ? this.field.defaultValue : value;
-        }
-
-        console.log('text field component, initial value:', value, value === undefined);
-
-        // calculate value initially
-        if (this.field.calculateValueInitially) {
+    handleCurrentObserver() {
+        this.currentValueTrigger$?.pipe(takeUntil(this.destroy$)).subscribe(() => {
             const calculatedValue = this.getCalculatedValue();
 
-            if (calculatedValue !== undefined) {
-                value = calculatedValue;
-            }
-        }
+            console.log({ calculatedValue });
 
-        console.log('text field component, initial value after initial calculation:', value, value === undefined);
+            const { id, subsectionId, sectionId } = this.field;
 
-        // set value
-        setToJson(this.field.path, source, value);
-
-        // update in form control
-        this.formControl.setValue(value);
-    }
-
-    // trigger dependent fields which have initial calculation flag
-    triggerInitialDependentFields() {
-        const dependentFieldsWithInitialCalculation =
-            this.#globalService.getDependentFieldsWithInitialCalculation(this.field.id) || [];
-
-        console.log('dependent fields with initial calculation', dependentFieldsWithInitialCalculation);
-
-        dependentFieldsWithInitialCalculation.forEach((dependentId) => {
-            const observer$ = this.#globalService.getDependentObserver(dependentId);
-            observer$?.next(Symbol());
+            this.#globalService.updateFormValue(calculatedValue, id, subsectionId, sectionId);
+            this.handleFormValue(calculatedValue);
         });
-    }
 
-    // trigger dependent fields
-    triggerDependentFields() {
-        const dependentIds = this.#globalService.getDependentFieldIds(this.field.id) ?? [];
+        this.currentDisableTrigger$?.pipe(takeUntil(this.destroy$)).subscribe(() => {
+            const disable = this.isDisable();
 
-        console.log('dependent ids', dependentIds);
+            console.log(this.field.label, disable);
 
-        dependentIds.forEach((dependentId) => {
-            this.#globalService.triggerDependentObserver(dependentId);
+            this.#globalService.disableFieldForm(
+                disable ? true : false,
+                this.field.id,
+                this.field.subsectionId,
+                this.field.sectionId,
+            );
         });
-    }
 
-    // update value in source and trigger dependent fields
-    updateSourceOnFieldValueChange(value: unknown) {
-        setToJson(this.field.path, this.#globalService.source, value);
+        this.currentValidatorTrigger$?.pipe(takeUntil(this.destroy$)).subscribe(() => {
+            if (this.field.readonly) return;
 
-        this.triggerDependentFields();
-    }
+            const validators = this.field?.validators ?? [];
 
-    // on change current form value
-    handleFormValueChange() {
-        this.formControl.valueChanges
-            .pipe(debounceTime(150), distinctUntilChanged(), takeUntil(this.destroy$))
-            .subscribe((value) => {
-                console.log('form contol value of field', this.field.id, value);
+            validators.forEach((validator) => {
+                const shouldAddValidator = this.shouldAddValidator(validator);
 
-                this.updateSourceOnFieldValueChange(value);
+                console.log('shouldAddValidator', this.field.name, shouldAddValidator, validator.type);
+
+                if (typeof shouldAddValidator === 'boolean' && shouldAddValidator) {
+                    this.handleValidators(validator);
+
+                    console.log(
+                        'shouldAddValidator 2',
+                        this.field.name,
+                        this.formControl.hasValidator(Validators.required),
+                    );
+                } else {
+                    this.handleValidators(validator, true);
+                }
             });
+
+            this.formControl.updateValueAndValidity();
+            this.#changeDetectorRef.detectChanges();
+        });
+    }
+
+    handleValidators(validator: TValidator, remove = false) {
+        const type = validator.type;
+
+        const value = validator.value;
+
+        switch (type) {
+            case 'REQUIRED':
+                this.#globalService.updateRequiredValidator(
+                    this.field.id,
+                    this.field.subsectionId,
+                    this.field.sectionId,
+                    remove,
+                );
+                break;
+
+            case 'PATTERN':
+                if (value && (typeof value === 'string' || value instanceof RegExp)) {
+                    this.#globalService.updatePatternValidator(
+                        value,
+                        this.field.id,
+                        this.field.subsectionId,
+                        this.field.sectionId,
+                        remove,
+                    );
+                }
+                break;
+
+            case 'MIN':
+                if (value && typeof value === 'number') {
+                    this.#globalService.updateMinValidator(
+                        value,
+                        this.field.id,
+                        this.field.subsectionId,
+                        this.field.sectionId,
+                        remove,
+                    );
+                }
+                break;
+
+            case 'MAX':
+                if (value && typeof value === 'number') {
+                    this.#globalService.updateMaxValidator(
+                        value,
+                        this.field.id,
+                        this.field.subsectionId,
+                        this.field.sectionId,
+                        remove,
+                    );
+                }
+                break;
+
+            case 'MIN_LENGTH':
+                if (value && typeof value === 'number') {
+                    this.#globalService.updateMinLengthValidator(
+                        value,
+                        this.field.id,
+                        this.field.subsectionId,
+                        this.field.sectionId,
+                        remove,
+                    );
+                }
+                break;
+
+            case 'MAX_LENGTH':
+                if (value && typeof value === 'number') {
+                    this.#globalService.updateMaxLengthValidator(
+                        value,
+                        this.field.id,
+                        this.field.subsectionId,
+                        this.field.sectionId,
+                        remove,
+                    );
+                }
+                break;
+
+            default:
+                break;
+        }
+    }
+
+    updateSource(value: unknown) {
+        setToJson(this.field.path, this.#globalService.getSource()(), value);
+
+        console.log(this.#globalService.getSource()());
+    }
+
+    handleFormValue(value: unknown) {
+        // TODO: Convert to number if field type is number
+        this.updateSource(value);
+        this.triggerDependencies();
+
+        console.log('this.formControl', this.field.name, this.formControl);
+    }
+
+    handleFormInput(e: Event) {
+        const value = (e.target as HTMLInputElement).value;
+
+        this.handleFormValue(value);
     }
 
     // return calculated value
     getCalculatedValue() {
+        if (this.field.readonly) return;
+
         const valueCondition = this.field?.value;
 
         if (!valueCondition) return;
@@ -144,9 +215,10 @@ export class TextfieldComponent implements OnInit, OnDestroy {
         return this.getConditionResult(valueCondition);
     }
 
-    // return if form needs to be disable or not
-    isDisabled() {
-        const disable = this.field.disable;
+    isDisable() {
+        if (this.field.readonly) return;
+
+        const disable = this.field?.disable;
 
         if (disable === undefined) return false;
 
@@ -157,45 +229,10 @@ export class TextfieldComponent implements OnInit, OnDestroy {
         return this.getConditionResult(disable);
     }
 
-    // update form value
-    handleCalculateAndFormValueUpdate() {
-        const calculatedValue = this.getCalculatedValue();
+    shouldAddValidator(validator: TValidator) {
+        if (!validator?.condition) return true;
 
-        if (calculatedValue !== undefined) {
-            this.formControl.setValue(calculatedValue);
-        }
-
-        return calculatedValue;
-    }
-
-    // update form disable/ enable
-    handleDisable() {
-        const disable = this.isDisabled();
-
-        if (disable) {
-            this.formControl.disable();
-
-            return;
-        }
-
-        this.formControl.enable();
-    }
-
-    handleFormChanges() {
-        if (this.field.value !== undefined) {
-            this.handleCalculateAndFormValueUpdate();
-        }
-
-        // disable
-        this.handleDisable();
-    }
-
-    handleChangesOnDependentChanges() {
-        this.current$?.subscribe(() => {
-            console.log('current trigger for field id:', this.field.id, ', field label:', this.field.label);
-
-            this.handleFormChanges();
-        });
+        return this.getConditionResult(validator?.condition);
     }
 
     // -------- start: calculation ------------------
@@ -244,7 +281,7 @@ export class TextfieldComponent implements OnInit, OnDestroy {
         for (const key of keys) {
             const query = dataMap[key]?.query;
 
-            const value = getFromJson(query, this.#globalService.source);
+            const value = getFromJson(query, this.#globalService.getSource()());
 
             if (value === null || value === undefined || value === '') {
                 return;
@@ -302,8 +339,136 @@ export class TextfieldComponent implements OnInit, OnDestroy {
 
     // ---------------------- end: calculation -------------
 
+    triggerFieldValueDependentObservers() {
+        const dependentIds = this.#globalService.getFieldValueDependentFieldIds(this.field.id);
+
+        console.log('dependent ids', dependentIds);
+
+        dependentIds?.forEach((dependentId) => {
+            this.#globalService.triggerFieldValueDependentObserver(dependentId);
+        });
+    }
+
+    triggerFieldDisableDependentObservers() {
+        const dependentIds = this.#globalService.getFieldDisableDependentFieldIds(this.field.id);
+
+        console.log('dependent ids', dependentIds);
+
+        dependentIds?.forEach((dependentId) => {
+            this.#globalService.triggerFieldDisableDependentObserver(dependentId);
+        });
+    }
+
+    triggerFieldValidatorsDependentObservers() {
+        const dependentIds = this.#globalService.getFieldValidatorsDependentFieldIds(this.field.id);
+
+        console.log('dependent ids', dependentIds);
+
+        dependentIds?.forEach((dependentId) => {
+            this.#globalService.triggerFieldValidatorDependentObserver(dependentId);
+        });
+    }
+
+    // trigger dependent fields
+    async triggerDependencies() {
+        this.#globalService.triggerShowHideObservers(this.field.id);
+
+        await promiseWait(100);
+
+        this.triggerFieldDisableDependentObservers();
+
+        this.triggerFieldValueDependentObservers();
+        this.triggerFieldValidatorsDependentObservers();
+    }
+
+    // validators
+    hasRequiredValidator() {
+        return this.formControl.hasValidator(Validators.required);
+    }
+
+    rerender() {
+        console.log('Rerender field', this.field.name, this.formControl.errors);
+    }
+
+    getErrorMessages() {
+        const errors = this.formControl.errors;
+
+        if (errors === null) return;
+
+        const errorMessages: string[] = [];
+
+        Object.keys(errors).forEach((key) => {
+            const errorMessage = this.errorMessage(key);
+
+            if (errorMessage !== null && errorMessage !== undefined) {
+                errorMessages.push(errorMessage);
+            }
+        });
+
+        return errorMessages;
+    }
+
+    errorMessage(key: string) {
+        switch (key) {
+            case 'required':
+                return this.requiredErrorMessage();
+
+            case 'pattern':
+                return this.patternErrorMessage();
+
+            case 'min':
+                return this.minErrorMessage();
+
+            default:
+                return null;
+        }
+    }
+
+    requiredErrorMessage() {
+        if (this.field.readonly) return;
+
+        const validator = this.field.validators?.find((validator) => validator.type === 'REQUIRED');
+
+        return validator?.message;
+    }
+
+    patternErrorMessage() {
+        if (this.field.readonly) return;
+
+        const patternFromValidator = this.formControl.errors?.['pattern']?.requiredPattern;
+
+        const validator = this.field.validators?.find(
+            (validator) => validator.type === 'PATTERN' && validator.value === patternFromValidator,
+        );
+
+        return validator?.message;
+    }
+
+    minErrorMessage() {
+        if (this.field.readonly) return;
+
+        const minFromValidator = this.formControl.errors?.['min']?.min;
+
+        const validator = this.field.validators?.find(
+            (validator) => validator.type === 'MIN' && validator.value === minFromValidator,
+        );
+
+        return validator?.message;
+    }
+
     ngOnDestroy(): void {
         this.destroy$.next();
         this.destroy$.complete();
     }
 }
+/**
+ * Custoom validator
+ * Strong type check
+ * input type variable
+ * Refactor duplicate code
+ * Textarea, date field, select etc.
+ * Autocomplete
+ * API integration feature
+ * Refcator
+ * UI
+ */
