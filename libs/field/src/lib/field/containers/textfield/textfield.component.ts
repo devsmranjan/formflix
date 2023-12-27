@@ -60,7 +60,11 @@ export class TextfieldComponent implements OnInit, OnDestroy {
         this.currentValidatorTrigger$?.pipe(takeUntil(this.destroy$)).subscribe(() => {
             if (this.field.readonly) return;
 
-            this.#globalService.handleCurrentValidators(this.field);
+            this.#globalService.fieldValidator.handleCurrentValidators(
+                this.field,
+                this.#globalService.getForm(),
+                this.#globalService.shouldAddFieldValidator.bind(this.#globalService),
+            );
 
             this.formControl.updateValueAndValidity();
             this.#changeDetectorRef.detectChanges();

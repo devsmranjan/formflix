@@ -4,7 +4,14 @@ import { RouterModule } from '@angular/router';
 import { FieldComponent } from '@formflix/field';
 import { SectionComponent } from '@formflix/section';
 import { SubsectionComponent } from '@formflix/subsection';
-import { FieldValidatorService, GlobalService, TTemplate, setToJson } from '@formflix/utils';
+import {
+    ConditionService,
+    FieldValidatorService,
+    FormDisableService,
+    GlobalService,
+    TTemplate,
+    setToJson,
+} from '@formflix/utils';
 
 @Component({
     standalone: true,
@@ -12,7 +19,7 @@ import { FieldValidatorService, GlobalService, TTemplate, setToJson } from '@for
     selector: 'formflix-root',
     templateUrl: './app.component.html',
     styleUrl: './app.component.scss',
-    providers: [GlobalService, FieldValidatorService],
+    providers: [GlobalService, FieldValidatorService, ConditionService, FormDisableService],
 })
 export class AppComponent implements OnInit {
     globalService = inject(GlobalService);

@@ -1,26 +1,19 @@
 import { Injectable, inject, signal } from '@angular/core';
-import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { FormControl, FormGroup } from '@angular/forms';
 
 import { BehaviorSubject, Subject } from 'rxjs';
 
 import { getFromJson, promiseWait } from '../helpers';
-import {
-    TCondition,
-    TDataMap,
-    TField,
-    TFieldReadAndWrite,
-    TId,
-    TSection,
-    TSubsection,
-    TTemplate,
-    TValidator,
-    TemplateSchema,
-} from '../schemas';
+import { TField, TId, TSection, TSubsection, TTemplate, TValidator, TemplateSchema } from '../schemas';
+import { ConditionService } from './condition/condition.service';
 import { FieldValidatorService } from './field-validator/field-validator.service';
+import { FormDisableService } from './form-disable/form-disable.service';
 
 @Injectable()
 export class GlobalService {
     fieldValidator = inject(FieldValidatorService);
+    condition = inject(ConditionService);
+    formDisable = inject(FormDisableService);
 
     #source = signal<Record<string, unknown> | unknown[] | null>(null);
 
@@ -116,6 +109,10 @@ export class GlobalService {
         } catch (error) {
             console.error(error);
         }
+    }
+
+    getForm() {
+        return this.#form;
     }
 
     // create field map
@@ -449,195 +446,6 @@ export class GlobalService {
         this.triggerAllFieldDisableObservers();
     }
 
-    // start: form disable ----------------
-
-    disableFieldForm(value: boolean, fieldId: TId, subsectionId: TId, sectionId: TId) {
-        const formControl = this.getFieldFormRef(fieldId, subsectionId, sectionId);
-
-        if (!formControl) return;
-
-        if (value) {
-            formControl.disable();
-        } else {
-            formControl.enable();
-        }
-    }
-
-    disableSubsectionForm(value: boolean, subsectionId: TId, sectionId: TId) {
-        const formGroup = this.getSubsectionFormRef(subsectionId, sectionId);
-
-        if (!formGroup) return;
-
-        if (value) {
-            formGroup.disable();
-        } else {
-            formGroup.enable();
-        }
-    }
-
-    disableSectionForm(value: boolean, sectionId: TId) {
-        const formGroup = this.getSectionFormRef(sectionId);
-
-        if (!formGroup) return;
-
-        if (value) {
-            formGroup.disable();
-        } else {
-            formGroup.enable();
-        }
-    }
-
-    disableForm(value: boolean) {
-        const formGroup = this.#form;
-
-        if (!formGroup) return;
-
-        if (value) {
-            formGroup.disable();
-        } else {
-            formGroup.enable();
-        }
-    }
-
-    // end: form disable ----------------
-
-    // start: validator -------------------
-
-    updateRequiredValidator(fieldId: TId, subsectionId: TId, sectionId: TId, remove = false) {
-        const formControl = this.getFieldFormRef(fieldId, subsectionId, sectionId);
-
-        if (!formControl) return;
-
-        if (!remove) {
-            formControl.addValidators(Validators.required);
-        } else {
-            formControl.removeValidators(Validators.required);
-        }
-    }
-
-    updatePatternValidator(value: string | RegExp, fieldId: TId, subsectionId: TId, sectionId: TId, remove = false) {
-        const formControl = this.getFieldFormRef(fieldId, subsectionId, sectionId);
-
-        if (!formControl) return;
-
-        if (!remove) {
-            formControl.addValidators(Validators.pattern(value));
-        } else {
-            formControl.removeValidators(Validators.pattern(value));
-        }
-    }
-
-    updateMaxValidator(value: number, fieldId: TId, subsectionId: TId, sectionId: TId, remove = false) {
-        const formControl = this.getFieldFormRef(fieldId, subsectionId, sectionId);
-
-        if (!formControl) return;
-
-        if (!remove) {
-            formControl.addValidators(Validators.max(value));
-        } else {
-            formControl.removeValidators(Validators.max(value));
-        }
-    }
-
-    updateMinValidator(value: number, fieldId: TId, subsectionId: TId, sectionId: TId, remove = false) {
-        const formControl = this.getFieldFormRef(fieldId, subsectionId, sectionId);
-
-        if (!formControl) return;
-
-        if (!remove) {
-            formControl.addValidators(Validators.min(value));
-        } else {
-            formControl.removeValidators(Validators.min(value));
-        }
-    }
-
-    updateMaxLengthValidator(value: number, fieldId: TId, subsectionId: TId, sectionId: TId, remove = false) {
-        const formControl = this.getFieldFormRef(fieldId, subsectionId, sectionId);
-
-        if (!formControl) return;
-
-        if (!remove) {
-            formControl.addValidators(Validators.maxLength(value));
-        } else {
-            formControl.removeValidators(Validators.maxLength(value));
-        }
-    }
-
-    updateMinLengthValidator(value: number, fieldId: TId, subsectionId: TId, sectionId: TId, remove = false) {
-        const formControl = this.getFieldFormRef(fieldId, subsectionId, sectionId);
-
-        if (!formControl) return;
-
-        if (!remove) {
-            formControl.addValidators(Validators.minLength(value));
-        } else {
-            formControl.removeValidators(Validators.minLength(value));
-        }
-    }
-
-    handleCurrentValidators(field: TFieldReadAndWrite) {
-        if (field.readonly) return;
-
-        const validators = field?.validators ?? [];
-
-        validators.forEach((validator) => {
-            const shouldAddValidator = this.shouldAddFieldValidator(validator, field);
-
-            if (typeof shouldAddValidator === 'boolean' && shouldAddValidator) {
-                this.handleValidators(validator, field);
-            } else {
-                this.handleValidators(validator, field, true);
-            }
-        });
-    }
-
-    handleValidators(validator: TValidator, field: TField, remove = false) {
-        const type = validator.type;
-
-        const value = validator.value;
-
-        switch (type) {
-            case 'REQUIRED':
-                this.updateRequiredValidator(field.id, field.subsectionId, field.sectionId, remove);
-                break;
-
-            case 'PATTERN':
-                if (value && (typeof value === 'string' || value instanceof RegExp)) {
-                    this.updatePatternValidator(value, field.id, field.subsectionId, field.sectionId, remove);
-                }
-                break;
-
-            case 'MIN':
-                if (value && typeof value === 'number') {
-                    this.updateMinValidator(value, field.id, field.subsectionId, field.sectionId, remove);
-                }
-                break;
-
-            case 'MAX':
-                if (value && typeof value === 'number') {
-                    this.updateMaxValidator(value, field.id, field.subsectionId, field.sectionId, remove);
-                }
-                break;
-
-            case 'MIN_LENGTH':
-                if (value && typeof value === 'number') {
-                    this.updateMinLengthValidator(value, field.id, field.subsectionId, field.sectionId, remove);
-                }
-                break;
-
-            case 'MAX_LENGTH':
-                if (value && typeof value === 'number') {
-                    this.updateMaxLengthValidator(value, field.id, field.subsectionId, field.sectionId, remove);
-                }
-                break;
-
-            default:
-                break;
-        }
-    }
-
-    // end: validator ------------------------
-
     getFieldValueDependentFieldIds(id: TId) {
         return this.#fieldValueDependentAndFieldMap.get(id);
     }
@@ -684,10 +492,6 @@ export class GlobalService {
         this.#fieldMap.forEach((field) => {
             this.triggerFieldValidatorDependentObserver(field.id);
         });
-
-        setTimeout(() => {
-            console.log('after validator trigger', this.#form);
-        }, 1000);
     }
 
     triggerShowHideObservers(fieldId: TId) {
@@ -698,28 +502,18 @@ export class GlobalService {
         const showDependencyIds = this.getFieldShowDependentFieldIds(fieldId) ?? [];
         const hideDependencyIds = this.getFieldHideDependentFieldIds(fieldId) ?? [];
 
-        console.log('showDependencyIds -----', showDependencyIds);
-        console.log('hideDependencyIds -----', hideDependencyIds);
-
         const fieldIdSet = new Set<TId>([...showDependencyIds, ...hideDependencyIds]);
-
-        console.log('fieldIdSet --------', fieldIdSet);
 
         // now loop through ids, and get subsection ids, from fieldMap.
         const subsectionIdSet = new Set<TId>();
 
         fieldIdSet.forEach((fieldId) => {
-            console.log('this.#fieldMap ---------', this.#fieldMap);
             const field = this.#fieldMap.get(fieldId);
-
-            console.log('field ---------', field);
 
             if (!field) return;
 
             subsectionIdSet.add(field.subsectionId);
         });
-
-        console.log('subsectionIdSet ---- ', subsectionIdSet);
 
         // trigger observers of subsections by id.
         subsectionIdSet.forEach((subsectionId) => {
@@ -732,8 +526,6 @@ export class GlobalService {
     triggerFieldValueDependentObservers(field: TField) {
         const dependentIds = this.getFieldValueDependentFieldIds(field.id);
 
-        console.log('dependent ids', dependentIds);
-
         dependentIds?.forEach((dependentId) => {
             this.triggerFieldValueDependentObserver(dependentId);
         });
@@ -742,8 +534,6 @@ export class GlobalService {
     triggerFieldDisableDependentObservers(field: TField) {
         const dependentIds = this.getFieldDisableDependentFieldIds(field.id);
 
-        console.log('dependent ids', dependentIds);
-
         dependentIds?.forEach((dependentId) => {
             this.triggerFieldDisableDependentObserver(dependentId);
         });
@@ -751,8 +541,6 @@ export class GlobalService {
 
     triggerFieldValidatorsDependentObservers(field: TField) {
         const dependentIds = this.getFieldValidatorsDependentFieldIds(field.id);
-
-        console.log('dependent ids', dependentIds);
 
         dependentIds?.forEach((dependentId) => {
             this.triggerFieldValidatorDependentObserver(dependentId);
@@ -771,187 +559,16 @@ export class GlobalService {
         this.triggerFieldValidatorsDependentObservers(field);
     }
 
-    // error messages -----------------------------------------
-
-    // validators
-    // fieldHasRequiredValidator(formControl: FormControl) {
-    //     return formControl.hasValidator(Validators.required);
-    // }
-
-    // getFieldErrorMessages(field: TField, formControl: FormControl) {
-    //     const errors = formControl.errors;
-
-    //     if (errors === null) return;
-
-    //     const errorMessages: string[] = [];
-
-    //     Object.keys(errors).forEach((key) => {
-    //         const errorMessage = this.fieldErrorMessage(key, field, formControl);
-
-    //         if (errorMessage !== null && errorMessage !== undefined) {
-    //             errorMessages.push(errorMessage);
-    //         }
-    //     });
-
-    //     return errorMessages;
-    // }
-
-    // fieldErrorMessage(key: string, field: TField, formControl: FormControl) {
-    //     switch (key) {
-    //         case 'required':
-    //             return this.fieldRequiredErrorMessage(field);
-
-    //         case 'pattern':
-    //             return this.fieldPatternErrorMessage(field, formControl);
-
-    //         case 'min':
-    //             return this.fieldMinErrorMessage(field, formControl);
-
-    //         default:
-    //             return null;
-    //     }
-    // }
-
-    // fieldRequiredErrorMessage(field: TField) {
-    //     if (field.readonly) return;
-
-    //     const validator = field.validators?.find((validator) => validator.type === 'REQUIRED');
-
-    //     return validator?.message;
-    // }
-
-    // fieldPatternErrorMessage(field: TField, formControl: FormControl) {
-    //     if (field.readonly) return;
-
-    //     const patternFromValidator = formControl.errors?.['pattern']?.requiredPattern;
-
-    //     const validator = field.validators?.find(
-    //         (validator) => validator.type === 'PATTERN' && validator.value === patternFromValidator,
-    //     );
-
-    //     return validator?.message;
-    // }
-
-    // fieldMinErrorMessage(field: TField, formControl: FormControl) {
-    //     if (field.readonly) return;
-
-    //     const minFromValidator = formControl.errors?.['min']?.min;
-
-    //     const validator = field.validators?.find(
-    //         (validator) => validator.type === 'MIN' && validator.value === minFromValidator,
-    //     );
-
-    //     return validator?.message;
-    // }
-
-    // -------- start: calculation ------------------
-
-    // use functions to calculate
-    calculateWithFn(dataMap: TDataMap, key: string, currentValue: unknown) {
-        const fn = dataMap[key]?.fn;
-
-        if (!fn) return currentValue;
-
-        if (!Array.isArray(currentValue)) {
-            console.log('current value is not an array, current value:', currentValue);
-            return currentValue;
-        }
-
-        if (currentValue.length === 0) {
-            return currentValue;
-        }
-
-        switch (fn) {
-            case 'SUM':
-                return currentValue.reduce((a: number, b: number) => a + b, 0);
-            case 'MULT':
-                return currentValue.reduce((a: number, b: number) => a * b, 1);
-            case 'AVG':
-                return currentValue.reduce((a: number, b: number) => a + b, 0) / currentValue.length;
-            case 'MAX':
-                return Math.max(...currentValue);
-            case 'MIN':
-                return Math.min(...currentValue);
-            case 'COUNT':
-                return currentValue.length;
-            case 'FIRST':
-                return currentValue.at(0);
-            case 'LAST':
-                return currentValue.at(-1);
-            default:
-                return currentValue;
-        }
-    }
-
-    // create value map for expression from dataMap
-    getCalculateExpressionValueMap(keys: string[], dataMap: TDataMap) {
-        const expressionValueMap: Record<string, unknown> = {};
-
-        for (const key of keys) {
-            const query = dataMap[key]?.query;
-
-            const value = getFromJson(query, this.getSource()());
-
-            if (value === null || value === undefined || value === '') {
-                return;
-            }
-
-            expressionValueMap[key] = this.calculateWithFn(dataMap, key, value);
-        }
-
-        return expressionValueMap;
-    }
-
-    // generate final expression and return
-    getFinalExpression(expression: string, keys: string[], valueMap: Record<string, unknown>) {
-        let finalExpression = expression;
-
-        keys.forEach((key) => {
-            const regex = new RegExp(`{${key}}`, 'g');
-
-            const value = valueMap[key];
-
-            if (typeof value === 'string' || typeof value === 'number') {
-                finalExpression = finalExpression.replaceAll(regex, `${value}`);
-            }
-        });
-
-        return finalExpression;
-    }
-
-    // get result from condition
-    getConditionResult(condition: TCondition, field: TField): unknown {
-        const { dataMap, expression } = condition;
-
-        const expressionKeys = Object.keys(dataMap);
-
-        console.log('expression keys', expressionKeys);
-
-        const expressionValueMap = this.getCalculateExpressionValueMap(expressionKeys, dataMap);
-        if (!expressionValueMap) return;
-
-        const finalExpression = this.getFinalExpression(expression, expressionKeys, expressionValueMap);
-
-        // calculate value
-        try {
-            const calculatedValue = (0, eval)(finalExpression);
-
-            console.log('calculated value', calculatedValue);
-
-            return calculatedValue;
-        } catch (error) {
-            console.error(`error - ${field.label}:`, error);
-        }
-
-        return;
-    }
-
-    // ---------------------- end: calculation -------------
-
     handleDisableFieldForm(field: TField) {
         const disable = this.isFieldDisable(field);
 
-        this.disableFieldForm(disable ? true : false, field.id, field.subsectionId, field.sectionId);
+        this.formDisable.disableField(
+            disable ? true : false,
+            this.#form,
+            field.id,
+            field.subsectionId,
+            field.sectionId,
+        );
     }
 
     isFieldDisable(field: TField) {
@@ -965,13 +582,13 @@ export class GlobalService {
             return disable;
         }
 
-        return this.getConditionResult(disable, field);
+        return this.condition.getResult(disable, field, this.#source());
     }
 
     shouldAddFieldValidator(validator: TValidator, field: TField) {
         if (!validator?.condition) return true;
 
-        return this.getConditionResult(validator?.condition, field);
+        return this.condition.getResult(validator?.condition, field, this.#source());
     }
 
     // return calculated value
@@ -982,6 +599,6 @@ export class GlobalService {
 
         if (!valueCondition) return;
 
-        return this.getConditionResult(valueCondition, field);
+        return this.condition.getResult(valueCondition, field, this.#source());
     }
 }
