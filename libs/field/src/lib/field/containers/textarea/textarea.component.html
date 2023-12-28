@@ -1,11 +1,19 @@
-<!-- <label class="form-control">
-    <formflix-top-label [message]="field.label" [showRequiredSymbol]="field.required ?? false" />
+<label class="form-control w-full max-w-xs">
+    @if (field.label) {
+        <formflix-top-label [message]="field.label" [showRequiredSymbol]="hasRequiredValidator()" />
+    }
 
-    <textarea class="textarea textarea-bordered h-24 w-full max-w-xs"></textarea>
+    <textarea
+        [formControl]="formControl"
+        class="textarea textarea-bordered h-24 w-full max-w-xs"
+        (input)="handleFormInput($event)"
+    ></textarea>
 
-    @if (error() !== null) {
-        <formflix-bottom-label *ngIf="error() as error" [message]="error" colorClass="text-gray-400" />
+    @if (getErrorMessages(); as errorMessages) {
+        @for (message of errorMessages; track message) {
+            <formflix-bottom-label [message]="message" colorClass="text-red-500" />
+        }
     } @else if (field.hint) {
         <formflix-bottom-label [message]="field.hint" />
     }
-</label> -->
+</label>

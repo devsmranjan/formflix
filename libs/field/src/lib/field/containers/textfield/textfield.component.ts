@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit, inject } from '@angular/core';
-import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { FormControl, ReactiveFormsModule } from '@angular/forms';
 
 import { GlobalService, TInputFieldReadAndWrite, setToJson } from '@formflix/utils';
 
@@ -11,7 +11,7 @@ import { BottomLabelComponent, TopLabelComponent } from '../../ui';
 @Component({
     selector: 'formflix-textfield',
     standalone: true,
-    imports: [CommonModule, ReactiveFormsModule, FormsModule, TopLabelComponent, BottomLabelComponent],
+    imports: [CommonModule, ReactiveFormsModule, TopLabelComponent, BottomLabelComponent],
     templateUrl: './textfield.component.html',
     styleUrl: './textfield.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,

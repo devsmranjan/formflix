@@ -201,14 +201,14 @@ export class FieldValidatorService {
             const shouldAddValidator = shouldAddFieldValidatorCb(validator, field);
 
             if (typeof shouldAddValidator === 'boolean' && shouldAddValidator) {
-                this.handleValidators(validator, field, form);
+                this.handleValidator(validator, field, form);
             } else {
-                this.handleValidators(validator, field, form, true);
+                this.handleValidator(validator, field, form, true);
             }
         });
     }
 
-    handleValidators(validator: TValidator, field: TField, form: FormGroup, remove = false) {
+    handleValidator(validator: TValidator, field: TField, form: FormGroup, remove = false) {
         const type = validator.type;
 
         const value = validator.value;

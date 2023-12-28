@@ -196,6 +196,41 @@ export class AppComponent implements OnInit {
                             //     label: 'Field F',
                             //     path: '$.data.field_e',
                             // },
+                            9: {
+                                id: 9,
+                                sectionId: 1,
+                                subsectionId: 4,
+                                name: 'Field F',
+                                label: 'Field F',
+                                tag: 'textarea',
+                                path: '$.data.field_d',
+                                hint: 'field f hint',
+                                validators: [
+                                    {
+                                        type: 'REQUIRED',
+                                        message: 'Field F is required',
+                                        condition: {
+                                            dataMap: {
+                                                FIELD_E: {
+                                                    query: '$.data.field_e',
+                                                },
+                                            },
+                                            expression: '{FIELD_E} === 200',
+                                        },
+                                    },
+                                    {
+                                        type: 'PATTERN',
+                                        value: '^.{6}$|^.{8}$',
+                                        message: 'Field F can have only 6 or 8 chracters',
+                                    },
+                                    {
+                                        type: 'MIN',
+                                        value: 100001,
+                                        message: 'Field F should have minimum 100001',
+                                    },
+                                ],
+                                validatorsDependsOn: [8],
+                            },
                         },
                     },
                 },
