@@ -12,6 +12,10 @@
             <formflix-textarea [field]="field" />
         }
 
+        @case ('select') {
+            <formflix-select [field]="field" />
+        }
+
         @default {
             <p>Not able map with any field</p>
         }

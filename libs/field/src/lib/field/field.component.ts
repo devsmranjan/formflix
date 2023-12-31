@@ -3,12 +3,12 @@ import { ChangeDetectionStrategy, Component, Input, OnInit, inject } from '@angu
 
 import { GlobalService, TField, getFromJson } from '@formflix/utils';
 
-import { TextareaComponent, TextfieldComponent } from './containers';
+import { SelectComponent, TextareaComponent, TextfieldComponent } from './containers';
 
 @Component({
     selector: 'formflix-field',
     standalone: true,
-    imports: [CommonModule, TextfieldComponent, TextareaComponent],
+    imports: [CommonModule, TextfieldComponent, TextareaComponent, SelectComponent],
     templateUrl: './field.component.html',
     styleUrl: './field.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,

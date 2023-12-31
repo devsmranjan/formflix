@@ -203,7 +203,7 @@ export class AppComponent implements OnInit {
                                 name: 'Field F',
                                 label: 'Field F',
                                 tag: 'textarea',
-                                path: '$.data.field_d',
+                                path: '$.data.field_f',
                                 hint: 'field f hint',
                                 validators: [
                                     {
@@ -231,6 +231,71 @@ export class AppComponent implements OnInit {
                                 ],
                                 validatorsDependsOn: [8],
                             },
+                            10: {
+                                id: 10,
+                                sectionId: 1,
+                                subsectionId: 4,
+                                name: 'Field G',
+                                label: 'Field G',
+                                tag: 'select',
+                                path: '$.data.field_g',
+                                hint: 'field g hint',
+                                options: [
+                                    {
+                                        label1: 'Option 1',
+                                        label2: 'Label 2',
+                                        label3: 'Label 3',
+                                    },
+                                    {
+                                        label1: 'Option 2',
+                                        label2: 'Label 2',
+                                        label3: 'Label 3',
+                                    },
+                                    {
+                                        label1: 'Option 3',
+                                        label2: 'Label 2',
+                                        label3: 'Label 3',
+                                    },
+                                    'Option 4',
+                                    'Option 5',
+                                ],
+                                optionsConfig: {
+                                    primaryValueDataPath: 'label1',
+                                    // secondaryValueDataPaths: ['label2', 'label3'],
+                                    // multiple: true,
+                                },
+                                // TODO: Handle default value
+                                // defaultValue: {
+                                //     label1: 'Option 1',
+                                //     label2: 'Label 2',
+                                //     label3: 'Label 3',
+                                // },
+                                // validators: [
+                                //     {
+                                //         type: 'REQUIRED',
+                                //         message: 'Field F is required',
+                                //         condition: {
+                                //             dataMap: {
+                                //                 FIELD_E: {
+                                //                     query: '$.data.field_e',
+                                //                 },
+                                //             },
+                                //             expression: '{FIELD_E} === 200',
+                                //         },
+                                //     },
+                                //     {
+                                //         type: 'PATTERN',
+                                //         value: '^.{6}$|^.{8}$',
+                                //         message: 'Field F can have only 6 or 8 chracters',
+                                //     },
+                                //     {
+                                //         type: 'MIN',
+                                //         value: 100001,
+                                //         message: 'Field F should have minimum 100001',
+                                //     },
+                                // ],
+                                // validatorsDependsOn: [8],
+                            },
                         },
                     },
                 },
@@ -245,6 +310,33 @@ export class AppComponent implements OnInit {
             field_c: 100,
             field_d: undefined,
             field_e: 4,
+            field_f: 5,
+            field_g:
+                // [
+                //     // {
+                //     //     label1: 'Option 2',
+                //     //     label2: 'Label 2',
+                //     //     label3: 'Label 3',
+                //     // },
+                //     // {
+                //     //     label1: 'Option 1',
+                //     //     label2: 'Label 2',
+                //     //     label3: 'Label 3',
+                //     // },
+                //     {
+                //         label1: 'Option 1',
+                //         label2: 'Label 2',
+                //         label3: 'Label 3',
+                //     },
+                //     'Option 4',
+                //     'Option 5',
+                // ]
+
+                {
+                    label1: 'Option 1',
+                    label2: 'Label 2',
+                    label3: 'Label 3',
+                },
             a: {
                 price: 1,
                 b: {

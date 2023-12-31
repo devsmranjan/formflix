@@ -1,0 +1,36 @@
+<label class="form-control w-full max-w-xs">
+    @if (field.label) {
+        <formflix-top-label [message]="field.label" [showRequiredSymbol]="hasRequiredValidator()" />
+    }
+
+    <select
+        [formControl]="formControl"
+        class="select select-bordered w-full max-w-xs"
+        (change)="handleFormInput()"
+        [multiple]="field.optionsConfig?.multiple"
+    >
+        <option disabled>Choose</option>
+
+        @for (option of field.options; track $index) {
+            <option [ngValue]="option">
+                @if (isAnObjectExcludeNull(option) && field.optionsConfig) {
+                    <p>{{ getValueByPath(field.optionsConfig.primaryValueDataPath, option) }}</p>
+
+                    @for (secondaryPath of field.optionsConfig.secondaryValueDataPaths; track $index) {
+                        <p>{{ getValueByPath(secondaryPath, option) }}</p>
+                    }
+                } @else {
+                    <p>{{ option }}</p>
+                }
+            </option>
+        }
+    </select>
+
+    @if (getErrorMessages(); as errorMessages) {
+        @for (message of errorMessages; track message) {
+            <formflix-bottom-label [message]="message" colorClass="text-red-500" />
+        }
+    } @else if (field.hint) {
+        <formflix-bottom-label [message]="field.hint" />
+    }
+</label>

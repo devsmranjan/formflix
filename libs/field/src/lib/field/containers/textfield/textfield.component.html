@@ -7,7 +7,7 @@
         [type]="field.type"
         [formControl]="formControl"
         class="input input-bordered w-full max-w-xs"
-        (input)="handleFormInput($event)"
+        (input)="handleFormInput()"
     />
 
     @if (getErrorMessages(); as errorMessages) {

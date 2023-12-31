@@ -81,10 +81,8 @@ export class TextareaComponent implements OnInit, OnDestroy {
         this.#globalService.triggerDependencies(this.field);
     }
 
-    handleFormInput(e: Event) {
-        const value = (e.target as HTMLInputElement).value;
-
-        this.handleFormValue(value);
+    handleFormInput() {
+        this.handleFormValue(this.formControl.value);
     }
 
     hasRequiredValidator() {

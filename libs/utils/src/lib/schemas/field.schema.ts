@@ -111,14 +111,62 @@ export const TextareaFieldReadAndWriteSchema = TextareaFieldSchema.extend({
     readonly: literal(false).optional(),
 });
 
+export const OptionsConfigSchema = object({
+    primaryValueDataPath: string().optional(), // only for object values
+    secondaryValueDataPaths: array(string()).optional(), // only for object values
+    multiple: boolean().optional(),
+});
+
+// select
+export const SelectFieldSchema = FieldBaseSchema.omit({
+    type: true,
+}).extend({
+    tag: literal('select'),
+    options: array(union([unknown(), record(union([string(), number()]), unknown())])),
+    optionsConfig: OptionsConfigSchema.optional(),
+});
+
+// export const SelectFieldPremitiveOptionsSchema = SelectFieldBaseSchema.extend({
+//     options: array(unknown()),
+// })
+
+// export const SelectFieldRecordOptionsSchema = SelectFieldBaseSchema.extend({
+//     options: array(record(union([string(), number()]))),
+// })
+
+// export const SelectFieldSchema = union([SelectFieldPremitiveOptionsSchema, SelectFieldRecordOptionsSchema])
+
+export const SelectFieldReadonlySchema = SelectFieldSchema.omit({
+    value: true,
+    validatorsDependsOn: true,
+    disable: true,
+    disableDependsOn: true,
+    validators: true,
+    valueDependsOn: true,
+}).extend({
+    readonly: literal(true),
+});
+
+export const SelectFieldReadAndWriteSchema = SelectFieldSchema.extend({
+    readonly: literal(false).optional(),
+});
+
 export const InputFieldReadonlySchema = union([InputTextFieldReadonlySchema, InputNumberFieldReadonlySchema]);
 export const InputFieldReadAndWriteSchema = union([
     InputTextFieldReadAndWriteSchema,
     InputNumberFieldReadAndWriteSchema,
 ]);
 
-export const FieldReadonlySchema = union([InputFieldReadonlySchema, TextareaFieldReadonlySchema]);
-export const FieldReadAndWriteSchema = union([InputFieldReadAndWriteSchema, TextareaFieldReadAndWriteSchema]);
+export const FieldReadonlySchema = union([
+    InputFieldReadonlySchema,
+    TextareaFieldReadonlySchema,
+    SelectFieldReadonlySchema,
+]);
+export const FieldReadAndWriteSchema = union([
+    InputFieldReadAndWriteSchema,
+    TextareaFieldReadAndWriteSchema,
+    SelectFieldReadAndWriteSchema,
+]);
 
 export const FieldSchema = union([FieldReadonlySchema, FieldReadAndWriteSchema]);
 
@@ -141,6 +189,10 @@ export type TInputNumberFieldReadAndWrite = z.infer<typeof InputNumberFieldReadA
 export type TTextareaField = z.infer<typeof TextareaFieldSchema>;
 export type TTextareaFieldReadonly = z.infer<typeof TextareaFieldReadonlySchema>;
 export type TTextareaFieldReadAndWrite = z.infer<typeof TextareaFieldReadAndWriteSchema>;
+
+export type TSelectField = z.infer<typeof SelectFieldSchema>;
+export type TSelectFieldReadonly = z.infer<typeof SelectFieldReadonlySchema>;
+export type TSelectFieldReadAndWrite = z.infer<typeof SelectFieldReadAndWriteSchema>;
 
 export type TInputFieldReadonly = z.infer<typeof InputFieldReadonlySchema>;
 export type TInputFieldReadAndWrite = z.infer<typeof InputFieldReadAndWriteSchema>;

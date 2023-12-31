@@ -6,7 +6,7 @@
     <textarea
         [formControl]="formControl"
         class="textarea textarea-bordered h-24 w-full max-w-xs"
-        (input)="handleFormInput($event)"
+        (input)="handleFormInput()"
     ></textarea>
 
     @if (getErrorMessages(); as errorMessages) {
