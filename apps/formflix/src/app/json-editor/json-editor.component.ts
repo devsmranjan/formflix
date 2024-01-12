@@ -1,32 +1,19 @@
-import { Component, OnInit, inject } from '@angular/core';
-import { RouterModule } from '@angular/router';
+import { CommonModule } from '@angular/common';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
 
-import { FieldComponent } from '@formflix/field';
-import { SectionComponent } from '@formflix/section';
-import { SubsectionComponent } from '@formflix/subsection';
-import {
-    ConditionService,
-    FieldValidatorService,
-    FormDisableService,
-    GlobalService,
-    TTemplate,
-    setToJson,
-} from '@formflix/utils';
-
-import { JsonEditorComponent } from './json-editor/json-editor.component';
+import { JsonEditorOptions, NgJsonEditorModule } from 'ang-jsoneditor';
 
 @Component({
+    selector: 'formflix-json-editor',
     standalone: true,
-    imports: [RouterModule, FieldComponent, SubsectionComponent, SectionComponent, JsonEditorComponent],
-    selector: 'formflix-root',
-    templateUrl: './app.component.html',
-    styleUrl: './app.component.scss',
-    providers: [GlobalService, FieldValidatorService, ConditionService, FormDisableService],
+    imports: [CommonModule, NgJsonEditorModule],
+    templateUrl: './json-editor.component.html',
+    styleUrl: './json-editor.component.scss',
+    changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class AppComponent implements OnInit {
-    globalService = inject(GlobalService);
-
-    template: Partial<TTemplate> = {
+export class JsonEditorComponent {
+    editorOptions = new JsonEditorOptions();
+    data = {
         label: 'Form',
         sections: {
             1: {
@@ -374,28 +361,7 @@ export class AppComponent implements OnInit {
         },
     };
 
-    ngOnInit(): void {
-        console.log('App initiated');
-
-        this.globalService.setSource(this.source);
-        this.globalService.setTemplate(this.template);
-    }
-
-    getSections() {
-        return this.globalService.getSections();
-    }
-
-    updateSource() {
-        setToJson(this.source, '$.data.field_c', 100);
-    }
-
-    updateAllFieldsSilently() {
-        this.globalService.updateAllFieldValueFromSource();
-    }
-
-    printSource() {
-        console.log({
-            source: this.source,
-        });
+    getData(json: unknown) {
+        console.log(json);
     }
 }

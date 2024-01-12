@@ -3,3 +3,12 @@
 @tailwind utilities;
 
 /* You can add global styles to this file, and also import other style files */
+@import 'jsoneditor/dist/jsoneditor.min.css';
+
+// textarea.jsoneditor-text {
+//     min-height: 350px;
+// }
+
+div.jsoneditor-outer {
+    height: 500px;
+}

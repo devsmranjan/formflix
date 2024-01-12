@@ -9,7 +9,8 @@
         "rxjs": "~7.8.0",
         "jsonpath-plus": "^7.2.0",
         "zod": "^3.22.4",
-        "@angular/forms": "~17.0.0"
+        "@angular/forms": "~17.0.0",
+        "lodash-es": "^4.17.21"
     },
     "dependencies": {},
     "sideEffects": false
