@@ -1,203 +1,81 @@
-import { array, boolean, literal, number, object, record, string, union, unknown, z } from 'zod';
+import { z } from 'zod';
 
-import { ConditionSchema } from './condition.schema';
+import { DisableSchema } from './disable.schema';
+import { FieldTypesSchema } from './field-types.schema';
+import { HideSchema } from './hide.schema';
 import { IdSchema } from './id.schema';
-import { ValidatorSchema } from './validator.schema';
+import { ShowSchema } from './show.schema';
+import { ValidatorsSchema } from './validator.schema';
+import { ValueSchema } from './value.schema';
 
-export const FieldTagSchema = z.enum([
-    'input',
-    'textarea',
-    'select',
-    'autocomplete',
-    'date',
-    'time',
-    'datetime',
-    'range',
-    'radio',
-    'checkbox',
-]);
+export const FieldSchema = z
+    .object({
+        id: IdSchema,
+        sectionId: IdSchema,
+        subsectionId: IdSchema,
+        name: z.string().optional(),
+        label: z.string().optional(),
+        path: z.string(),
+        hint: z.string().optional(),
+        disable: DisableSchema.optional(),
+        value: ValueSchema.optional(),
+        show: ShowSchema.optional(),
+        hide: HideSchema.optional(),
+        validators: ValidatorsSchema.optional(),
+        readonly: z.boolean().optional(),
+    })
+    .and(FieldTypesSchema)
+    .superRefine((val, ctx) => {
+        if (val.readonly === true) {
+            // if readonly true, and disable is there, show error for disable that, it cannot be present
+            if (val.disable !== undefined) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    message: 'disable cannot be present when readonly is true',
+                    path: ['disable'],
+                });
+            }
 
-export const FieldBaseSchema = object({
-    id: IdSchema,
-    sectionId: IdSchema,
-    subsectionId: IdSchema,
-    name: string().optional(),
-    label: string().optional(),
-    path: string(),
-    tag: FieldTagSchema, // TODO: Need to handle
-    type: z.enum(['text', 'number']).optional(), // TODO: Need to handle
-    defaultValue: unknown().optional(), // TODO: Need to handle
-    hint: string().optional(),
-    value: ConditionSchema.optional(),
-    valueDependsOn: array(IdSchema).optional(),
-    disable: union([boolean(), ConditionSchema]).optional(),
-    disableDependsOn: array(IdSchema).optional(),
-    readonly: boolean().optional(), // if readonly, then cannot change value direct or indirectly
-    show: union([boolean(), ConditionSchema]).optional(), // TODO: test with readonly field
-    showDependsOn: array(IdSchema).optional(),
-    hide: union([boolean(), ConditionSchema]).optional(),
-    hideDependsOn: array(IdSchema).optional(),
-    validators: array(ValidatorSchema).optional(),
-    validatorsDependsOn: array(IdSchema).optional(),
-});
+            // if readonly true, and value is there, show error for value that, it cannot be present
+            if (val.value !== undefined) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    message: 'value cannot be present when readonly is true',
+                    path: ['value'],
+                });
+            }
 
-export const InputFieldSchema = FieldBaseSchema.extend({
-    tag: z.literal('input'),
-    type: z.enum(['text', 'number']),
-});
+            // if readonly true, and show is there, show error for show that, it cannot be present
+            if (val.show !== undefined) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    message: 'show cannot be present when readonly is true',
+                    path: ['show'],
+                });
+            }
 
-export const InputFieldDisableSchema = InputFieldSchema.extend({});
+            // if readonly true, and hide is there, show error for hide that, it cannot be present
+            if (val.hide !== undefined) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    message: 'hide cannot be present when readonly is true',
+                    path: ['hide'],
+                });
+            }
 
-export const InputTextFieldSchema = InputFieldSchema.extend({
-    type: z.literal('text'),
-    defaultValue: string().optional(),
-});
-
-export const InputTextFieldReadonlySchema = InputTextFieldSchema.omit({
-    value: true,
-    validatorsDependsOn: true,
-    disable: true,
-    disableDependsOn: true,
-    validators: true,
-    valueDependsOn: true,
-}).extend({
-    readonly: z.literal(true),
-});
-
-export const InputTextFieldReadAndWriteSchema = InputTextFieldSchema.extend({
-    readonly: literal(false).optional(),
-});
-
-// number field
-export const InputNumberFieldSchema = InputFieldSchema.extend({
-    type: literal('number'),
-    defaultValue: number().optional(),
-});
-
-export const InputNumberFieldReadonlySchema = InputNumberFieldSchema.omit({
-    value: true,
-    validatorsDependsOn: true,
-    disable: true,
-    disableDependsOn: true,
-    validators: true,
-    valueDependsOn: true,
-}).extend({
-    readonly: z.literal(true),
-});
-
-export const InputNumberFieldReadAndWriteSchema = InputNumberFieldSchema.extend({
-    readonly: literal(false).optional(),
-});
-
-// text area
-export const TextareaFieldSchema = FieldBaseSchema.omit({
-    type: true,
-}).extend({
-    tag: literal('textarea'),
-});
-
-export const TextareaFieldReadonlySchema = TextareaFieldSchema.omit({
-    value: true,
-    validatorsDependsOn: true,
-    disable: true,
-    disableDependsOn: true,
-    validators: true,
-    valueDependsOn: true,
-}).extend({
-    readonly: literal(true),
-});
-
-export const TextareaFieldReadAndWriteSchema = TextareaFieldSchema.extend({
-    readonly: literal(false).optional(),
-});
-
-export const OptionsConfigSchema = object({
-    primaryValueDataPath: string().optional(), // only for object values
-    secondaryValueDataPaths: array(string()).optional(), // only for object values
-    multiple: boolean().optional(),
-});
-
-// select
-export const SelectFieldSchema = FieldBaseSchema.omit({
-    type: true,
-}).extend({
-    tag: literal('select'),
-    options: array(union([unknown(), record(union([string(), number()]), unknown())])),
-    optionsConfig: OptionsConfigSchema.optional(),
-});
-
-// export const SelectFieldPremitiveOptionsSchema = SelectFieldBaseSchema.extend({
-//     options: array(unknown()),
-// })
-
-// export const SelectFieldRecordOptionsSchema = SelectFieldBaseSchema.extend({
-//     options: array(record(union([string(), number()]))),
-// })
-
-// export const SelectFieldSchema = union([SelectFieldPremitiveOptionsSchema, SelectFieldRecordOptionsSchema])
-
-export const SelectFieldReadonlySchema = SelectFieldSchema.omit({
-    value: true,
-    validatorsDependsOn: true,
-    disable: true,
-    disableDependsOn: true,
-    validators: true,
-    valueDependsOn: true,
-}).extend({
-    readonly: literal(true),
-});
-
-export const SelectFieldReadAndWriteSchema = SelectFieldSchema.extend({
-    readonly: literal(false).optional(),
-});
-
-export const InputFieldReadonlySchema = union([InputTextFieldReadonlySchema, InputNumberFieldReadonlySchema]);
-export const InputFieldReadAndWriteSchema = union([
-    InputTextFieldReadAndWriteSchema,
-    InputNumberFieldReadAndWriteSchema,
-]);
-
-export const FieldReadonlySchema = union([
-    InputFieldReadonlySchema,
-    TextareaFieldReadonlySchema,
-    SelectFieldReadonlySchema,
-]);
-export const FieldReadAndWriteSchema = union([
-    InputFieldReadAndWriteSchema,
-    TextareaFieldReadAndWriteSchema,
-    SelectFieldReadAndWriteSchema,
-]);
-
-export const FieldSchema = union([FieldReadonlySchema, FieldReadAndWriteSchema]);
-
-export const FieldMapSchema = record(IdSchema, FieldSchema);
-
-export type TFieldTag = z.infer<typeof FieldTagSchema>;
-export type TFieldMap = z.infer<typeof FieldMapSchema>;
-export type TFieldBase = z.infer<typeof FieldBaseSchema>;
-
-export type TInputField = z.infer<typeof InputFieldSchema>;
-
-export type TInputTextField = z.infer<typeof InputTextFieldSchema>;
-export type TInputTextFieldReadonly = z.infer<typeof InputTextFieldReadonlySchema>;
-export type TInputTextFieldReadAndWrite = z.infer<typeof InputTextFieldReadAndWriteSchema>;
-
-export type TInputNumberField = z.infer<typeof InputNumberFieldSchema>;
-export type TInputNumberFieldReadonly = z.infer<typeof InputNumberFieldReadonlySchema>;
-export type TInputNumberFieldReadAndWrite = z.infer<typeof InputNumberFieldReadAndWriteSchema>;
-
-export type TTextareaField = z.infer<typeof TextareaFieldSchema>;
-export type TTextareaFieldReadonly = z.infer<typeof TextareaFieldReadonlySchema>;
-export type TTextareaFieldReadAndWrite = z.infer<typeof TextareaFieldReadAndWriteSchema>;
-
-export type TSelectField = z.infer<typeof SelectFieldSchema>;
-export type TSelectFieldReadonly = z.infer<typeof SelectFieldReadonlySchema>;
-export type TSelectFieldReadAndWrite = z.infer<typeof SelectFieldReadAndWriteSchema>;
-
-export type TInputFieldReadonly = z.infer<typeof InputFieldReadonlySchema>;
-export type TInputFieldReadAndWrite = z.infer<typeof InputFieldReadAndWriteSchema>;
-
-export type TFieldReadonly = z.infer<typeof FieldReadonlySchema>;
-export type TFieldReadAndWrite = z.infer<typeof FieldReadAndWriteSchema>;
+            // if readonly true, and validators is there, show error for validators that, it cannot be present
+            if (val.validators !== undefined) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    message: 'validators cannot be present when readonly is true',
+                    path: ['validators'],
+                });
+            }
+        }
+    });
 
 export type TField = z.infer<typeof FieldSchema>;
+
+export const FieldMapSchema = z.record(IdSchema, FieldSchema);
+
+export type TFieldMap = z.infer<typeof FieldMapSchema>;

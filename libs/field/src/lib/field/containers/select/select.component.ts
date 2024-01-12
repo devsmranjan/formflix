@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit, inject } from '@angular/core';
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 
-import { GlobalService, TSelectFieldReadAndWrite, getFromJson, setToJson } from '@formflix/utils';
+import { GlobalService, TField, getFromJson, setToJson } from '@formflix/utils';
 
 import { Subject, takeUntil } from 'rxjs';
 
@@ -17,7 +17,7 @@ import { BottomLabelComponent, TopLabelComponent } from '../../ui';
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SelectComponent implements OnInit, OnDestroy {
-    @Input({ required: true }) field!: TSelectFieldReadAndWrite;
+    @Input({ required: true }) field!: TField;
 
     #globalService = inject(GlobalService);
     #changeDetectorRef = inject(ChangeDetectorRef);
@@ -124,7 +124,9 @@ export class SelectComponent implements OnInit, OnDestroy {
     }
 
     handleAndGetSelectValueAsObject(value: Record<string, unknown>) {
-        if (this.field.optionsConfig === undefined) return value;
+        if (this.field.tag !== 'SELECT') return value;
+
+        if (this.field.options === undefined) return value;
 
         const primaryValueDataPath = this.field.optionsConfig.primaryValueDataPath;
 

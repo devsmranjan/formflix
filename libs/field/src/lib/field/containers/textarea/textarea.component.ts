@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit, inject } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 
-import { GlobalService, TTextareaFieldReadAndWrite, setToJson } from '@formflix/utils';
+import { GlobalService, TField, setToJson } from '@formflix/utils';
 
 import { Subject, takeUntil } from 'rxjs';
 
@@ -17,7 +17,7 @@ import { BottomLabelComponent, TopLabelComponent } from '../../ui';
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TextareaComponent implements OnInit, OnDestroy {
-    @Input({ required: true }) field!: TTextareaFieldReadAndWrite;
+    @Input({ required: true }) field!: TField;
 
     #globalService = inject(GlobalService);
     #changeDetectorRef = inject(ChangeDetectorRef);

@@ -1,20 +1,22 @@
-<label class="form-control w-full max-w-xs">
-    @if (field.label) {
-        <formflix-top-label [message]="field.label" [showRequiredSymbol]="hasRequiredValidator()" />
-    }
-
-    <input
-        [type]="field.type"
-        [formControl]="formControl"
-        class="input input-bordered w-full max-w-xs"
-        (input)="handleFormInput()"
-    />
-
-    @if (getErrorMessages(); as errorMessages) {
-        @for (message of errorMessages; track message) {
-            <formflix-bottom-label [message]="message" colorClass="text-red-500" />
+@if (!field.readonly && field.tag === 'INPUT') {
+    <label class="form-control w-full max-w-xs">
+        @if (field.label) {
+            <formflix-top-label [message]="field.label" [showRequiredSymbol]="hasRequiredValidator()" />
         }
-    } @else if (field.hint) {
-        <formflix-bottom-label [message]="field.hint" />
-    }
-</label>
+
+        <input
+            [type]="field.type"
+            [formControl]="formControl"
+            class="input input-bordered w-full max-w-xs"
+            (input)="handleFormInput()"
+        />
+
+        @if (getErrorMessages(); as errorMessages) {
+            @for (message of errorMessages; track message) {
+                <formflix-bottom-label [message]="message" colorClass="text-red-500" />
+            }
+        } @else if (field.hint) {
+            <formflix-bottom-label [message]="field.hint" />
+        }
+    </label>
+}

@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 
-import { TField, TFieldReadAndWrite, TId, TValidator } from '../../schemas';
+import { TField, TId, TValidator } from '../../schemas';
 
 @Injectable()
 export class FieldValidatorService {
@@ -46,7 +46,7 @@ export class FieldValidatorService {
     getRequiredErrorMessage(field: TField) {
         if (field.readonly) return;
 
-        const validator = field.validators?.find((validator) => validator.type === 'REQUIRED');
+        const validator = field.validators?.value?.find((validator) => validator.type === 'REQUIRED');
 
         return validator?.message;
     }
@@ -56,7 +56,7 @@ export class FieldValidatorService {
 
         const patternFromValidator = formControl.errors?.['pattern']?.requiredPattern;
 
-        const validator = field.validators?.find(
+        const validator = field.validators?.value?.find(
             (validator) => validator.type === 'PATTERN' && validator.value === patternFromValidator,
         );
 
@@ -68,7 +68,7 @@ export class FieldValidatorService {
 
         const minFromValidator = formControl.errors?.['min']?.min;
 
-        const validator = field.validators?.find(
+        const validator = field.validators?.value?.find(
             (validator) => validator.type === 'MIN' && validator.value === minFromValidator,
         );
 
@@ -187,7 +187,7 @@ export class FieldValidatorService {
     }
 
     handleCurrentValidators(
-        field: TFieldReadAndWrite,
+        field: TField,
         form: FormGroup | null,
         shouldAddFieldValidatorCb: (validator: TValidator, field: TField) => unknown,
     ) {
@@ -195,7 +195,7 @@ export class FieldValidatorService {
 
         if (!form) return;
 
-        const validators = field?.validators ?? [];
+        const validators = field?.validators?.value ?? [];
 
         validators.forEach((validator) => {
             const shouldAddValidator = shouldAddFieldValidatorCb(validator, field);
@@ -211,7 +211,7 @@ export class FieldValidatorService {
     handleValidator(validator: TValidator, field: TField, form: FormGroup, remove = false) {
         const type = validator.type;
 
-        const value = validator.value;
+        const value = validator.condition;
 
         switch (type) {
             case 'REQUIRED':

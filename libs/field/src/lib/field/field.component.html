@@ -4,15 +4,15 @@
     <p>{{ getValue(field.path) }}</p>
 } @else {
     @switch (field.tag) {
-        @case ('input') {
+        @case ('INPUT') {
             <formflix-textfield [field]="field" />
         }
 
-        @case ('textarea') {
+        @case ('TEXTAREA') {
             <formflix-textarea [field]="field" />
         }
 
-        @case ('select') {
+        @case ('SELECT') {
             <formflix-select [field]="field" />
         }
 

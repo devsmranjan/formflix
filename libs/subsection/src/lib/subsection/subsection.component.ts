@@ -132,7 +132,7 @@ export class SubsectionComponent implements OnInit, OnDestroy {
     // ---------------------- end: calculation -------------
 
     shouldShowField(field: TField) {
-        const show = field?.show;
+        const show = field?.show?.value;
 
         if (show === undefined) return true;
 
@@ -148,7 +148,7 @@ export class SubsectionComponent implements OnInit, OnDestroy {
     }
 
     shouldHideField(field: TField) {
-        const hide = field?.hide;
+        const hide = field?.hide?.value;
 
         if (hide === undefined) return false;
 

@@ -208,7 +208,7 @@ export class GlobalService {
         fieldMap.forEach((field) => {
             if (field.readonly) return;
 
-            field?.valueDependsOn?.forEach((dependent) => {
+            field?.value?.dependsOn?.forEach((dependent) => {
                 this.updateDependentAndFieldMap(dependentAndFieldMap, dependent, field);
             });
         });
@@ -227,7 +227,7 @@ export class GlobalService {
         fieldMap.forEach((field) => {
             if (field.readonly) return;
 
-            field?.disableDependsOn?.forEach((dependent) => {
+            field?.disable?.dependsOn?.forEach((dependent) => {
                 this.updateDependentAndFieldMap(dependentAndFieldMap, dependent, field);
             });
         });
@@ -246,11 +246,11 @@ export class GlobalService {
         fieldMap.forEach((field) => {
             if (field.readonly) return;
 
-            field?.validatorsDependsOn?.forEach((dependent) => {
+            field?.validators?.dependsOn?.forEach((dependent) => {
                 this.updateDependentAndFieldMap(dependentAndFieldMap, dependent, field);
             });
 
-            field?.valueDependsOn?.forEach((dependent) => {
+            field?.value?.dependsOn?.forEach((dependent) => {
                 this.updateDependentAndFieldMap(dependentAndFieldMap, dependent, field);
             });
         });
@@ -268,7 +268,7 @@ export class GlobalService {
         fieldMap.forEach((field) => {
             // if (field.readonly) return;
 
-            field?.showDependsOn?.forEach((dependent) => {
+            field?.show?.dependsOn?.forEach((dependent) => {
                 this.updateDependentAndFieldMap(dependentAndFieldMap, dependent, field);
             });
         });
@@ -286,7 +286,7 @@ export class GlobalService {
         fieldMap.forEach((field) => {
             if (field.readonly) return;
 
-            field?.hideDependsOn?.forEach((dependent) => {
+            field?.hide?.dependsOn?.forEach((dependent) => {
                 this.updateDependentAndFieldMap(dependentAndFieldMap, dependent, field);
             });
         });
@@ -578,11 +578,11 @@ export class GlobalService {
 
         if (disable === undefined) return false;
 
-        if (typeof disable === 'boolean') {
-            return disable;
+        if (typeof disable.value === 'boolean') {
+            return disable.value;
         }
 
-        return this.condition.getResult(disable, field, this.#source());
+        return this.condition.getResult(disable.value, field, this.#source());
     }
 
     shouldAddFieldValidator(validator: TValidator, field: TField) {
@@ -595,7 +595,7 @@ export class GlobalService {
     getCalculatedValue(field: TField) {
         if (field.readonly) return;
 
-        const valueCondition = field?.value;
+        const valueCondition = field?.value?.value;
 
         if (!valueCondition) return;
 
