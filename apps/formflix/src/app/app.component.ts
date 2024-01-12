@@ -44,7 +44,7 @@ export class AppComponent implements OnInit {
                                 label: 'Field A: B + C',
                                 tag: 'INPUT',
                                 type: 'number',
-                                path: '$.data.field_a',
+                                path: 'data.field_a',
                                 value: {
                                     value: {
                                         dataMap: {
@@ -86,14 +86,16 @@ export class AppComponent implements OnInit {
                                 label: 'Field B: C * 2',
                                 tag: 'INPUT',
                                 type: 'number',
-                                path: '$.data.field_b',
+                                path: 'data.field_b',
                                 // value: {
-                                //     dataMap: {
-                                //         FIELD_C: {
-                                //             query: '$.data.field_c',
+                                //     value: {
+                                //         dataMap: {
+                                //             FIELD_C: {
+                                //                 query: '$.data.field_c',
+                                //             },
                                 //         },
-                                //     },
-                                //     expression: '{FIELD_C} * 2',
+                                //         expression: '{FIELD_C} * 2',
+                                //     }
                                 // },
                                 // valueDependsOn: [6],
                                 // disable: {
@@ -117,7 +119,7 @@ export class AppComponent implements OnInit {
                                 label: 'Field C: {FIELD_D} * 2',
                                 tag: 'INPUT',
                                 type: 'number',
-                                path: '$.data.field_c',
+                                path: 'data.field_c',
                                 value: {
                                     value: {
                                         dataMap: {
@@ -138,7 +140,7 @@ export class AppComponent implements OnInit {
                                 label: 'Field D: E * 3',
                                 tag: 'INPUT',
                                 type: 'number',
-                                path: '$.data.field_d',
+                                path: 'data.field_d',
                                 hint: 'field d hint',
                                 value: {
                                     value: {
@@ -198,7 +200,7 @@ export class AppComponent implements OnInit {
                                 label: 'Field E',
                                 tag: 'INPUT',
                                 type: 'number',
-                                path: '$.data.field_e',
+                                path: 'data.field_e',
                             },
                             // 9: {
                             //     id: 9,
@@ -215,7 +217,7 @@ export class AppComponent implements OnInit {
                                 name: 'Field F',
                                 label: 'Field F',
                                 tag: 'TEXTAREA',
-                                path: '$.data.field_f',
+                                path: 'data.field_f',
                                 hint: 'field f hint',
                                 validators: {
                                     value: [
@@ -252,7 +254,7 @@ export class AppComponent implements OnInit {
                                 name: 'Field G',
                                 label: 'Field G',
                                 tag: 'SELECT',
-                                path: '$.data.field_g',
+                                path: 'data.field_g',
                                 hint: 'field g hint',
                                 options: {
                                     value: [
@@ -276,6 +278,7 @@ export class AppComponent implements OnInit {
                                         primary: 'label1',
                                         secondary: ['label2', 'label3'],
                                     },
+                                    multiple: true,
                                 },
                                 // options:
 
@@ -331,7 +334,7 @@ export class AppComponent implements OnInit {
             field_d: undefined,
             field_e: 4,
             field_f: 5,
-            // field_g:
+            // field_g: undefined,
             // [
             //     // {
             //     //     label1: 'Option 2',
@@ -381,10 +384,16 @@ export class AppComponent implements OnInit {
     }
 
     updateSource() {
-        setToJson('$.data.field_c', this.source, 100);
+        setToJson(this.source, '$.data.field_c', 100);
     }
 
     updateAllFieldsSilently() {
         this.globalService.updateAllFieldValueFromSource();
+    }
+
+    printSource() {
+        console.log({
+            source: this.source,
+        });
     }
 }

@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, Input, OnDestroy, OnInit, inject, signal } from '@angular/core';
 
 import { FieldComponent } from '@formflix/field';
-import { GlobalService, TCondition, TDataMap, TField, TSubsection, getFromJson } from '@formflix/utils';
+import { GlobalService, TCondition, TDataMap, TField, TSubsection, getValueByQuery } from '@formflix/utils';
 
 import { Subject, takeUntil } from 'rxjs';
 
@@ -73,7 +73,7 @@ export class SubsectionComponent implements OnInit, OnDestroy {
         for (const key of keys) {
             const query = dataMap[key]?.query;
 
-            const value = getFromJson(query, this.globalService.getSource()());
+            const value = getValueByQuery(this.globalService.getSource()(), query);
 
             if (value === null || value === undefined || value === '') {
                 return;

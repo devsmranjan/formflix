@@ -2,8 +2,9 @@ import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit, inject } from '@angular/core';
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 
-import { GlobalService, TField, TOptionListWithObjectValue, getFromJson, setToJson } from '@formflix/utils';
+import { GlobalService, TField, TOptionListWithObjectValue, setToJson } from '@formflix/utils';
 
+import { get } from 'lodash-es';
 import { Subject, takeUntil } from 'rxjs';
 
 import { BottomLabelComponent, TopLabelComponent } from '../../ui';
@@ -81,7 +82,9 @@ export class SelectComponent implements OnInit, OnDestroy {
     updateSource(value: unknown) {
         console.log({ value });
 
-        setToJson(this.field.path, this.#globalService.getSource()(), value);
+        setToJson(this.#globalService.getSource()(), this.field.path, value);
+
+        console.log(this.#globalService.getSource()());
     }
 
     handleFormValue(value: unknown) {
@@ -143,9 +146,9 @@ export class SelectComponent implements OnInit, OnDestroy {
 
         if (primaryValueDataPath === undefined) return value;
 
-        const primaryValue = getFromJson(primaryValueDataPath, value);
+        const primaryValue = get(value, primaryValueDataPath);
         const selectedOption = finalOptions?.value?.find((option) => {
-            const optionPrimaryValue = getFromJson(primaryValueDataPath, option as Record<string, unknown>);
+            const optionPrimaryValue = get(option, primaryValueDataPath);
 
             return optionPrimaryValue === primaryValue;
         });
@@ -170,7 +173,7 @@ export class SelectComponent implements OnInit, OnDestroy {
     }
 
     handleSelectInitialValue() {
-        const valueFromSource = getFromJson(this.field.path, this.#globalService.getSource()());
+        const valueFromSource = get(this.#globalService.getSource()(), this.field.path);
 
         console.log({ valueFromSource });
 
@@ -186,7 +189,7 @@ export class SelectComponent implements OnInit, OnDestroy {
 
         if (typeof source !== 'object') return source;
 
-        return getFromJson(path, source as unknown[] | Record<string, unknown>);
+        return get(source as unknown[] | Record<string, unknown>, path);
     }
 
     isAnObjectExcludeNull(input: unknown) {

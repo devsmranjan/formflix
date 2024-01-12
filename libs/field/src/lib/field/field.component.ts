@@ -1,7 +1,9 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, Input, OnInit, inject } from '@angular/core';
 
-import { GlobalService, TField, getFromJson } from '@formflix/utils';
+import { GlobalService, TField } from '@formflix/utils';
+
+import { get } from 'lodash-es';
 
 import { SelectComponent, TextareaComponent, TextfieldComponent } from './containers';
 
@@ -19,7 +21,7 @@ export class FieldComponent implements OnInit {
     #globalService = inject(GlobalService);
 
     getValue(path: string) {
-        return getFromJson(path, this.#globalService.getSource()());
+        return get(this.#globalService.getSource()(), path);
     }
 
     ngOnInit(): void {

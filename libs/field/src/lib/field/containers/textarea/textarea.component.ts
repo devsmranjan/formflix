@@ -72,7 +72,7 @@ export class TextareaComponent implements OnInit, OnDestroy {
     }
 
     updateSource(value: unknown) {
-        setToJson(this.field.path, this.#globalService.getSource()(), value);
+        setToJson(this.#globalService.getSource()(), this.field.path, value);
     }
 
     handleFormValue(value: unknown) {

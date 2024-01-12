@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 
-import { getFromJson } from '../../helpers';
+import { getValueByQuery } from '../../helpers';
 import { TCondition, TDataMap, TField } from '../../schemas';
 
 @Injectable()
@@ -49,7 +49,7 @@ export class ConditionService {
         for (const key of keys) {
             const query = dataMap[key]?.query;
 
-            const value = getFromJson(query, source);
+            const value = getValueByQuery(source, query);
 
             if (value === null || value === undefined || value === '') {
                 return;

@@ -1,9 +1,10 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
 
+import { get } from 'lodash-es';
 import { BehaviorSubject, Subject } from 'rxjs';
 
-import { getFromJson, promiseWait } from '../helpers';
+import { promiseWait } from '../helpers';
 import { TField, TId, TSection, TSubsection, TTemplate, TValidator, TemplateSchema } from '../schemas';
 import { ConditionService } from './condition/condition.service';
 import { FieldValidatorService } from './field-validator/field-validator.service';
@@ -297,7 +298,7 @@ export class GlobalService {
     // start: form ------------------------------------------
 
     createFieldFormControl(field: TField) {
-        return new FormControl(getFromJson(field.path, this.#source()));
+        return new FormControl(get(this.#source(), field.path));
     }
 
     createSubsectionFormGroup(subsection: TSubsection) {
@@ -440,7 +441,7 @@ export class GlobalService {
 
             if (!formControl) return;
 
-            formControl.setValue(getFromJson(field.path, this.#source()));
+            formControl.setValue(get(this.#source(), field.path));
         });
 
         this.triggerAllFieldDisableObservers();
