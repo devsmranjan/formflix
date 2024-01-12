@@ -42,30 +42,34 @@ export class AppComponent implements OnInit {
                                 subsectionId: 2,
                                 name: 'Field A',
                                 label: 'Field A: B + C',
-                                tag: 'input',
+                                tag: 'INPUT',
                                 type: 'number',
                                 path: '$.data.field_a',
                                 value: {
-                                    dataMap: {
-                                        FIELD_B: {
-                                            query: '$.data.field_b',
+                                    value: {
+                                        dataMap: {
+                                            FIELD_B: {
+                                                query: '$.data.field_b',
+                                            },
+                                            FIELD_C: {
+                                                query: '$.data.field_c',
+                                            },
                                         },
-                                        FIELD_C: {
-                                            query: '$.data.field_c',
-                                        },
+                                        expression: '{FIELD_B} + {FIELD_C}',
                                     },
-                                    expression: '{FIELD_B} + {FIELD_C}',
+                                    dependsOn: [5, 6],
                                 },
-                                valueDependsOn: [5, 6],
                                 disable: {
-                                    dataMap: {
-                                        FIELD_C: {
-                                            query: '$.data.field_c',
+                                    value: {
+                                        dataMap: {
+                                            FIELD_C: {
+                                                query: '$.data.field_c',
+                                            },
                                         },
+                                        expression: '{FIELD_C} === 100',
                                     },
-                                    expression: '{FIELD_C} === 100',
+                                    dependsOn: [6],
                                 },
-                                disableDependsOn: [6],
                             },
                         },
                     },
@@ -80,7 +84,7 @@ export class AppComponent implements OnInit {
                                 subsectionId: 4,
                                 name: 'Field B',
                                 label: 'Field B: C * 2',
-                                tag: 'input',
+                                tag: 'INPUT',
                                 type: 'number',
                                 path: '$.data.field_b',
                                 // value: {
@@ -111,18 +115,20 @@ export class AppComponent implements OnInit {
                                 subsectionId: 4,
                                 name: 'Field C',
                                 label: 'Field C: {FIELD_D} * 2',
-                                tag: 'input',
+                                tag: 'INPUT',
                                 type: 'number',
                                 path: '$.data.field_c',
                                 value: {
-                                    dataMap: {
-                                        FIELD_D: {
-                                            query: '$.data.field_d',
+                                    value: {
+                                        dataMap: {
+                                            FIELD_D: {
+                                                query: '$.data.field_d',
+                                            },
                                         },
+                                        expression: '{FIELD_D} * 2',
                                     },
-                                    expression: '{FIELD_D} * 2',
+                                    dependsOn: [7],
                                 },
-                                valueDependsOn: [7],
                             },
                             7: {
                                 id: 7,
@@ -130,53 +136,59 @@ export class AppComponent implements OnInit {
                                 subsectionId: 4,
                                 name: 'Field D',
                                 label: 'Field D: E * 3',
-                                tag: 'input',
+                                tag: 'INPUT',
                                 type: 'number',
                                 path: '$.data.field_d',
                                 hint: 'field d hint',
                                 value: {
-                                    dataMap: {
-                                        FIELD_E: {
-                                            query: '$.data.field_e',
-                                        },
-                                    },
-                                    expression: '{FIELD_E} * 3',
-                                },
-                                valueDependsOn: [8],
-                                hide: {
-                                    dataMap: {
-                                        FIELD_E: {
-                                            query: '$.data.field_e',
-                                        },
-                                    },
-                                    expression: '{FIELD_E} === 100',
-                                },
-                                hideDependsOn: [8],
-                                validators: [
-                                    {
-                                        type: 'REQUIRED',
-                                        message: 'Field D is required',
-                                        condition: {
-                                            dataMap: {
-                                                FIELD_E: {
-                                                    query: '$.data.field_e',
-                                                },
+                                    value: {
+                                        dataMap: {
+                                            FIELD_E: {
+                                                query: '$.data.field_e',
                                             },
-                                            expression: '{FIELD_E} === 200',
                                         },
+                                        expression: '{FIELD_E} * 3',
                                     },
-                                    {
-                                        type: 'PATTERN',
-                                        value: '^.{6}$|^.{8}$',
-                                        message: 'Field D can have only 6 or 8 chracters',
+                                    dependsOn: [8],
+                                },
+                                hide: {
+                                    value: {
+                                        dataMap: {
+                                            FIELD_E: {
+                                                query: '$.data.field_e',
+                                            },
+                                        },
+                                        expression: '{FIELD_E} === 100',
                                     },
-                                    {
-                                        type: 'MIN',
-                                        value: 100001,
-                                        message: 'Field D should have minimum 100001',
-                                    },
-                                ],
-                                validatorsDependsOn: [8],
+                                    dependsOn: [8],
+                                },
+                                validators: {
+                                    value: [
+                                        {
+                                            type: 'REQUIRED',
+                                            message: 'Field D is required',
+                                            condition: {
+                                                dataMap: {
+                                                    FIELD_E: {
+                                                        query: '$.data.field_e',
+                                                    },
+                                                },
+                                                expression: '{FIELD_E} === 200',
+                                            },
+                                        },
+                                        {
+                                            type: 'PATTERN',
+                                            value: '^.{6}$|^.{8}$',
+                                            message: 'Field D can have only 6 or 8 chracters',
+                                        },
+                                        {
+                                            type: 'MIN',
+                                            value: 100001,
+                                            message: 'Field D should have minimum 100001',
+                                        },
+                                    ],
+                                    dependsOn: [8],
+                                },
                             },
                             8: {
                                 id: 8,
@@ -184,7 +196,7 @@ export class AppComponent implements OnInit {
                                 subsectionId: 4,
                                 name: 'Field E',
                                 label: 'Field E',
-                                tag: 'input',
+                                tag: 'INPUT',
                                 type: 'number',
                                 path: '$.data.field_e',
                             },
@@ -202,34 +214,36 @@ export class AppComponent implements OnInit {
                                 subsectionId: 4,
                                 name: 'Field F',
                                 label: 'Field F',
-                                tag: 'textarea',
+                                tag: 'TEXTAREA',
                                 path: '$.data.field_f',
                                 hint: 'field f hint',
-                                validators: [
-                                    {
-                                        type: 'REQUIRED',
-                                        message: 'Field F is required',
-                                        condition: {
-                                            dataMap: {
-                                                FIELD_E: {
-                                                    query: '$.data.field_e',
+                                validators: {
+                                    value: [
+                                        {
+                                            type: 'REQUIRED',
+                                            message: 'Field F is required',
+                                            condition: {
+                                                dataMap: {
+                                                    FIELD_E: {
+                                                        query: '$.data.field_e',
+                                                    },
                                                 },
+                                                expression: '{FIELD_E} === 200',
                                             },
-                                            expression: '{FIELD_E} === 200',
                                         },
-                                    },
-                                    {
-                                        type: 'PATTERN',
-                                        value: '^.{6}$|^.{8}$',
-                                        message: 'Field F can have only 6 or 8 chracters',
-                                    },
-                                    {
-                                        type: 'MIN',
-                                        value: 100001,
-                                        message: 'Field F should have minimum 100001',
-                                    },
-                                ],
-                                validatorsDependsOn: [8],
+                                        {
+                                            type: 'PATTERN',
+                                            value: '^.{6}$|^.{8}$',
+                                            message: 'Field F can have only 6 or 8 chracters',
+                                        },
+                                        {
+                                            type: 'MIN',
+                                            value: 100001,
+                                            message: 'Field F should have minimum 100001',
+                                        },
+                                    ],
+                                    dependsOn: [8],
+                                },
                             },
                             10: {
                                 id: 10,
@@ -237,33 +251,39 @@ export class AppComponent implements OnInit {
                                 subsectionId: 4,
                                 name: 'Field G',
                                 label: 'Field G',
-                                tag: 'select',
+                                tag: 'SELECT',
                                 path: '$.data.field_g',
                                 hint: 'field g hint',
-                                options: [
-                                    {
-                                        label1: 'Option 1',
-                                        label2: 'Label 2',
-                                        label3: 'Label 3',
+                                options: {
+                                    value: [
+                                        {
+                                            label1: 'Option 1',
+                                            label2: 'Label 2',
+                                            label3: 'Label 3',
+                                        },
+                                        {
+                                            label1: 'Option 2',
+                                            label2: 'Label 2',
+                                            label3: 'Label 3',
+                                        },
+                                        {
+                                            label1: 'Option 3',
+                                            label2: 'Label 2',
+                                            label3: 'Label 3',
+                                        },
+                                    ],
+                                    dataPaths: {
+                                        primary: 'label1',
+                                        secondary: ['label2', 'label3'],
                                     },
-                                    {
-                                        label1: 'Option 2',
-                                        label2: 'Label 2',
-                                        label3: 'Label 3',
-                                    },
-                                    {
-                                        label1: 'Option 3',
-                                        label2: 'Label 2',
-                                        label3: 'Label 3',
-                                    },
-                                    'Option 4',
-                                    'Option 5',
-                                ],
-                                optionsConfig: {
-                                    primaryValueDataPath: 'label1',
-                                    // secondaryValueDataPaths: ['label2', 'label3'],
-                                    // multiple: true,
                                 },
+                                // options:
+
+                                // optionsConfig: {
+                                //     primaryValueDataPath: 'label1',
+                                //     // secondaryValueDataPaths: ['label2', 'label3'],
+                                //     // multiple: true,
+                                // },
                                 // TODO: Handle default value
                                 // defaultValue: {
                                 //     label1: 'Option 1',
@@ -311,32 +331,32 @@ export class AppComponent implements OnInit {
             field_d: undefined,
             field_e: 4,
             field_f: 5,
-            field_g:
-                // [
-                //     // {
-                //     //     label1: 'Option 2',
-                //     //     label2: 'Label 2',
-                //     //     label3: 'Label 3',
-                //     // },
-                //     // {
-                //     //     label1: 'Option 1',
-                //     //     label2: 'Label 2',
-                //     //     label3: 'Label 3',
-                //     // },
-                //     {
-                //         label1: 'Option 1',
-                //         label2: 'Label 2',
-                //         label3: 'Label 3',
-                //     },
-                //     'Option 4',
-                //     'Option 5',
-                // ]
+            // field_g:
+            // [
+            //     // {
+            //     //     label1: 'Option 2',
+            //     //     label2: 'Label 2',
+            //     //     label3: 'Label 3',
+            //     // },
+            //     // {
+            //     //     label1: 'Option 1',
+            //     //     label2: 'Label 2',
+            //     //     label3: 'Label 3',
+            //     // },
+            //     {
+            //         label1: 'Option 1',
+            //         label2: 'Label 2',
+            //         label3: 'Label 3',
+            //     },
+            //     'Option 4',
+            //     'Option 5',
+            // ]
 
-                {
-                    label1: 'Option 1',
-                    label2: 'Label 2',
-                    label3: 'Label 3',
-                },
+            // {
+            //     label1: 'Option 1',
+            //     label2: 'Label 2',
+            //     label3: 'Label 3',
+            // },
             a: {
                 price: 1,
                 b: {

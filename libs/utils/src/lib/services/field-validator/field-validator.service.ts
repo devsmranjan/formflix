@@ -211,40 +211,73 @@ export class FieldValidatorService {
     handleValidator(validator: TValidator, field: TField, form: FormGroup, remove = false) {
         const type = validator.type;
 
-        const value = validator.condition;
-
         switch (type) {
             case 'REQUIRED':
                 this.updateRequiredValidator(field.id, field.subsectionId, field.sectionId, form, remove);
                 break;
 
             case 'PATTERN':
-                if (value && (typeof value === 'string' || value instanceof RegExp)) {
-                    this.updatePatternValidator(value, field.id, field.subsectionId, field.sectionId, form, remove);
+                if (validator.value) {
+                    this.updatePatternValidator(
+                        validator.value,
+                        field.id,
+                        field.subsectionId,
+                        field.sectionId,
+                        form,
+                        remove,
+                    );
                 }
                 break;
 
             case 'MIN':
-                if (value && typeof value === 'number') {
-                    this.updateMinValidator(value, field.id, field.subsectionId, field.sectionId, form, remove);
+                if (validator.value) {
+                    this.updateMinValidator(
+                        validator.value,
+                        field.id,
+                        field.subsectionId,
+                        field.sectionId,
+                        form,
+                        remove,
+                    );
                 }
                 break;
 
             case 'MAX':
-                if (value && typeof value === 'number') {
-                    this.updateMaxValidator(value, field.id, field.subsectionId, field.sectionId, form, remove);
+                if (validator.value) {
+                    this.updateMaxValidator(
+                        validator.value,
+                        field.id,
+                        field.subsectionId,
+                        field.sectionId,
+                        form,
+                        remove,
+                    );
                 }
                 break;
 
             case 'MIN_LENGTH':
-                if (value && typeof value === 'number') {
-                    this.updateMinLengthValidator(value, field.id, field.subsectionId, field.sectionId, form, remove);
+                if (validator.value) {
+                    this.updateMinLengthValidator(
+                        validator.value,
+                        field.id,
+                        field.subsectionId,
+                        field.sectionId,
+                        form,
+                        remove,
+                    );
                 }
                 break;
 
             case 'MAX_LENGTH':
-                if (value && typeof value === 'number') {
-                    this.updateMaxLengthValidator(value, field.id, field.subsectionId, field.sectionId, form, remove);
+                if (validator.value) {
+                    this.updateMaxLengthValidator(
+                        validator.value,
+                        field.id,
+                        field.subsectionId,
+                        field.sectionId,
+                        form,
+                        remove,
+                    );
                 }
                 break;
 

@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit, inject } from '@angular/core';
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 
-import { GlobalService, TField, getFromJson, setToJson } from '@formflix/utils';
+import { GlobalService, TField, TOptionListWithObjectValue, getFromJson, setToJson } from '@formflix/utils';
 
 import { Subject, takeUntil } from 'rxjs';
 
@@ -128,14 +128,23 @@ export class SelectComponent implements OnInit, OnDestroy {
 
         if (this.field.options === undefined) return value;
 
-        const primaryValueDataPath = this.field.optionsConfig.primaryValueDataPath;
+        const options = this.field.options;
+        const optionsValue = options?.value ?? [];
+
+        if (optionsValue.length <= 0) return value;
+
+        const firstOptionValue = optionsValue[0];
+
+        if (firstOptionValue === null && typeof firstOptionValue !== 'object') return value;
+
+        const finalOptions = this.field.options as TOptionListWithObjectValue; // TODO: Parse with schema
+
+        const primaryValueDataPath = finalOptions?.dataPaths?.primary;
 
         if (primaryValueDataPath === undefined) return value;
 
         const primaryValue = getFromJson(primaryValueDataPath, value);
-        const options = this.field.options;
-
-        const selectedOption = options.find((option) => {
+        const selectedOption = finalOptions?.value?.find((option) => {
             const optionPrimaryValue = getFromJson(primaryValueDataPath, option as Record<string, unknown>);
 
             return optionPrimaryValue === primaryValue;
