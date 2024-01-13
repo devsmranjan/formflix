@@ -13,11 +13,7 @@ import { GlobalService, TSection } from '@formflix/utils';
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SectionComponent {
-    #globalService = inject(GlobalService);
+    globalService = inject(GlobalService);
 
     @Input({ required: true }) section!: TSection;
-
-    getSubsections() {
-        return this.#globalService.getSubsections(this.section.id);
-    }
 }

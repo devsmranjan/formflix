@@ -1,7 +1,10 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, inject } from '@angular/core';
+
+import { GlobalService } from '@formflix/utils';
 
 import { JsonEditorOptions, NgJsonEditorModule } from 'ang-jsoneditor';
+import { debounce } from 'lodash-es';
 
 @Component({
     selector: 'formflix-json-editor',
@@ -11,7 +14,9 @@ import { JsonEditorOptions, NgJsonEditorModule } from 'ang-jsoneditor';
     styleUrl: './json-editor.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class JsonEditorComponent {
+export class JsonEditorComponent implements OnInit {
+    #globalService = inject(GlobalService);
+
     editorOptions = new JsonEditorOptions();
     data = {
         label: 'Form',
@@ -315,53 +320,17 @@ export class JsonEditorComponent {
         },
     };
 
-    source = {
-        data: {
-            field_a: 2,
-            field_b: 5,
-            field_c: 100,
-            field_d: undefined,
-            field_e: 4,
-            field_f: 5,
-            // field_g: undefined,
-            // [
-            //     // {
-            //     //     label1: 'Option 2',
-            //     //     label2: 'Label 2',
-            //     //     label3: 'Label 3',
-            //     // },
-            //     // {
-            //     //     label1: 'Option 1',
-            //     //     label2: 'Label 2',
-            //     //     label3: 'Label 3',
-            //     // },
-            //     {
-            //         label1: 'Option 1',
-            //         label2: 'Label 2',
-            //         label3: 'Label 3',
-            //     },
-            //     'Option 4',
-            //     'Option 5',
-            // ]
-
-            // {
-            //     label1: 'Option 1',
-            //     label2: 'Label 2',
-            //     label3: 'Label 3',
-            // },
-            a: {
-                price: 1,
-                b: {
-                    price: 2,
-                    c: {
-                        price: null,
-                    },
-                },
-            },
-        },
-    };
-
-    getData(json: unknown) {
-        console.log(json);
+    constructor() {
+        this.editorOptions.mode = 'code';
     }
+
+    ngOnInit(): void {
+        this.#globalService.setTemplate(this.data);
+    }
+
+    updateTemplate = debounce((json: unknown) => {
+        if (json instanceof Event) return;
+
+        this.#globalService.setTemplate(json);
+    }, 500);
 }

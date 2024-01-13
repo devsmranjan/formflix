@@ -21,6 +21,9 @@ export class FieldComponent implements OnInit {
     #globalService = inject(GlobalService);
 
     getValue(path: string) {
+        console.log({
+            source: this.#globalService.getSource()(),
+        });
         return get(this.#globalService.getSource()(), path);
     }
 

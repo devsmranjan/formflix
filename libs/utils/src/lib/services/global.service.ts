@@ -1,4 +1,4 @@
-import { Injectable, inject, signal } from '@angular/core';
+import { Injectable, computed, inject, signal } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
 
 import { get } from 'lodash-es';
@@ -18,7 +18,7 @@ export class GlobalService {
 
     #source = signal<Record<string, unknown> | unknown[] | null>(null);
 
-    #template = signal<TTemplate | null>(null);
+    template = signal<TTemplate | null>(null);
     #form: FormGroup | null = null;
 
     #fieldMap = new Map<string | number, TField>();
@@ -45,6 +45,31 @@ export class GlobalService {
     // hide
     #fieldHideDependentAndFieldMap = new Map<TId, Set<TId>>();
 
+    // computed
+    sections = computed(() => {
+        const template = this.template();
+
+        console.log('Sections triggered');
+
+        const sectionMap = template?.sections;
+
+        if (!sectionMap) return [];
+
+        return Object.values(sectionMap);
+    });
+
+    subsections = computed(() => {
+        return (sectionId: TId) => {
+            const template = this.template();
+
+            const subsectionMap = template?.sections?.[sectionId]?.subsections;
+
+            if (!subsectionMap) return [];
+
+            return Object.values(subsectionMap);
+        };
+    });
+
     // source
 
     getSource() {
@@ -58,16 +83,17 @@ export class GlobalService {
     // template
 
     getTemplate() {
-        return this.#template;
+        return this.template;
     }
 
-    setTemplate(value: Partial<TTemplate> | null) {
+    setTemplate(value: unknown) {
         try {
+            console.log({ value });
             const template = TemplateSchema.parse(value);
 
             console.log({ template });
 
-            this.#template.set(template);
+            this.template.set(template);
 
             this.#form = this.createFormFromTemplate(template);
 
@@ -96,7 +122,7 @@ export class GlobalService {
             this.#fieldShowDependentAndFieldMap = this.createFieldShowDependentAndFieldMap(this.#fieldMap);
             this.#fieldHideDependentAndFieldMap = this.createFieldHideDependentAndFieldMap(this.#fieldMap);
 
-            console.log('Global 2 template', this.#template());
+            console.log('Global 2 template', this.template());
             console.log('Global 2 form', this.#form);
             console.log('Global 2 fieldMap', this.#fieldMap);
             console.log('Global 2 fieldDependentObserverMap', this.#fieldValueDependentObserverMap);
@@ -370,33 +396,13 @@ export class GlobalService {
     // start: get list of fields, subsections, sections -------------------------------
 
     getFields(subsectionId: TId, sectionId: TId) {
-        const template = this.#template();
+        const template = this.template();
 
         const fieldMap = template?.sections?.[sectionId]?.subsections?.[subsectionId]?.fields;
 
         if (!fieldMap) return [];
 
         return Object.values(fieldMap);
-    }
-
-    getSubsections(sectionId: TId) {
-        const template = this.#template();
-
-        const subsectionMap = template?.sections?.[sectionId]?.subsections;
-
-        if (!subsectionMap) return [];
-
-        return Object.values(subsectionMap);
-    }
-
-    getSections() {
-        const template = this.#template();
-
-        const sectionMap = template?.sections;
-
-        if (!sectionMap) return [];
-
-        return Object.values(sectionMap);
     }
 
     // end: get list of fields, subsections, sections -------------------------------

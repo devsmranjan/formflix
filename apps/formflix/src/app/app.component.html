@@ -1,4 +1,4 @@
-@if (globalService.getSource() && globalService.getTemplate()()) {
+<!-- @if (globalService.getSource() && globalService.getTemplate()()) {
     <section>
         @for (section of getSections(); track section.id) {
             <formflix-section [section]="section" />
@@ -9,6 +9,14 @@
 <button class="btn" (click)="updateSource()">Update source</button>
 <button class="btn" (click)="updateAllFieldsSilently()">Update field</button>
 
-<button class="btn" (click)="printSource()">Print source</button>
+<button class="btn" (click)="printSource()">Print source</button> -->
 
-<formflix-json-editor></formflix-json-editor>
+@if (globalService.getSource()) {
+    <div class="grid grid-cols-2 gap-4">
+        <formflix-json-editor />
+
+        <div class="m-6 overflow-scroll" style="height: calc(100vh - 1.5rem - 1.5rem)">
+            <formflix-generated-form />
+        </div>
+    </div>
+}
