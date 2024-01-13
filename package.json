@@ -5,7 +5,8 @@
     "scripts": {
         "prepare": "husky install",
         "tailwind": "nx g @nx/angular:setup-tailwind",
-        "start:formflix": "nx run formflix:serve"
+        "start:formflix": "nx run formflix:serve",
+        "build:formflix": "nx run formflix:build"
     },
     "private": true,
     "dependencies": {
