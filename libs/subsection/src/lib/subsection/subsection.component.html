@@ -1,5 +1,5 @@
 <section class="border p-2">
-    <h2>Subsection id {{ subsection.id }}</h2>
+    <h2>{{ subsection.label }}</h2>
     @for (field of fields(); track field.id) {
         <formflix-field [field]="field" />
     }

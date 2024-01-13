@@ -1,5 +1,5 @@
 <section class="border p-2">
-    <h2>Section id {{ section.id }}</h2>
+    <h2>{{ section.label }}</h2>
     @for (subsection of globalService.subsections()(section.id); track subsection.id) {
         <formflix-subsection [subsection]="subsection" />
     }

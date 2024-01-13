@@ -1,3 +1,5 @@
 <div class="m-6">
-    <json-editor [options]="editorOptions" [data]="data" (change)="updateTemplate($event)"></json-editor>
+    @if (template) {
+        <json-editor [options]="editorOptions" [data]="template" (change)="updateTemplate($event)" />
+    }
 </div>

@@ -16,7 +16,7 @@ export class GlobalService {
     condition = inject(ConditionService);
     formDisable = inject(FormDisableService);
 
-    #source = signal<Record<string, unknown> | unknown[] | null>(null);
+    source = signal<Record<string, unknown> | unknown[] | null>(null);
 
     template = signal<TTemplate | null>(null);
     #form: FormGroup | null = null;
@@ -73,11 +73,11 @@ export class GlobalService {
     // source
 
     getSource() {
-        return this.#source;
+        return this.source;
     }
 
     setSource(value: Record<string, unknown> | unknown[] | null) {
-        this.#source.set(value);
+        this.source.set(value);
     }
 
     // template
@@ -324,7 +324,7 @@ export class GlobalService {
     // start: form ------------------------------------------
 
     createFieldFormControl(field: TField) {
-        return new FormControl(get(this.#source(), field.path));
+        return new FormControl(get(this.source(), field.path));
     }
 
     createSubsectionFormGroup(subsection: TSubsection) {
@@ -447,7 +447,7 @@ export class GlobalService {
 
             if (!formControl) return;
 
-            formControl.setValue(get(this.#source(), field.path));
+            formControl.setValue(get(this.source(), field.path));
         });
 
         this.triggerAllFieldDisableObservers();
@@ -589,13 +589,13 @@ export class GlobalService {
             return disable.value;
         }
 
-        return this.condition.getResult(disable.value, field, this.#source());
+        return this.condition.getResult(disable.value, field, this.source());
     }
 
     shouldAddFieldValidator(validator: TValidator, field: TField) {
         if (!validator?.condition) return true;
 
-        return this.condition.getResult(validator?.condition, field, this.#source());
+        return this.condition.getResult(validator?.condition, field, this.source());
     }
 
     // return calculated value
@@ -606,6 +606,6 @@ export class GlobalService {
 
         if (!valueCondition) return;
 
-        return this.condition.getResult(valueCondition, field, this.#source());
+        return this.condition.getResult(valueCondition, field, this.source());
     }
 }

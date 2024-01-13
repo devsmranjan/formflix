@@ -1,0 +1,5 @@
+<div class="m-6">
+    @if (source) {
+        <json-editor [options]="editorOptions" [data]="source" (change)="updateSource($event)" />
+    }
+</div>
